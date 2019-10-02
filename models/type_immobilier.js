@@ -129,3 +129,31 @@ module.exports.findOne = (id, callback) => {
         callback(false, "Une exception de recherche de mode : " + exception)
     }
 }
+
+module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
+    try {
+        module.exports.findOne(objet.id_type_immo, (isFound, message, resultType) => {
+            if (isFound) {
+                objet.type = resultType.intitule;
+
+                if (objet.images && objet.images.length > 0) {
+                    var media = require("./media");
+
+                    media.initialize(db);
+                    media.getInfoForThisUserAndThisPublish(objet, (isGet, message, resultWithMedia) => {
+
+                        callback(true, message, resultWithMedia)
+
+                    })
+                } else {
+                    callback(true, "L'image n'existe pas, donc l'etape a été ignorer", objet)
+                }
+                
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception est lévée : " + exception)
+    }
+}

@@ -17,7 +17,7 @@ router.post('/register', (req, res) => {
     //For user
     entity.nom = req.body.nom;
     entity.prenom = req.body.prenom;
-    entity.type = req.body.type ? req.body.type : "client";
+    entity.type = req.body.type;
     entity.login.password = req.body.password;
 
     model.initialize(db);

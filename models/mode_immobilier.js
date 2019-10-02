@@ -75,3 +75,28 @@ module.exports.findOne = (id, callback) => {
         callback(false, "Une exception de recherche de mode : " + exception)
     }
 }
+
+module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
+    try {
+        module.exports.findOne(objet.id_mode_immo, (isFound, message, resultMode) => {
+            if (isFound) {
+                objet.mode = resultMode.intitule;
+
+                var type = require("./type_immobilier");
+
+                type.initialize(db);
+                type.getInfoForThisUserAndThisPublish(objet, (isGet, message, resultType) => {
+                    if (isGet) {
+                        callback(true, "Le type d'immobilier et les autres info y sont", resultType)
+                    } else {
+                        callback(false, message)
+                    }
+                })
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception est lévée : " +exception)
+    }
+}

@@ -64,3 +64,29 @@ module.exports.findImageForUser = (user, callback) => {
         
     }
 }
+
+module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "_id": require("mongodb").ObjectId(objet.images[0].lien_images)
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur lors de la recherche de l'image : " +err, objet)
+            } else {
+                if (resultAggr.length > 0) {
+                    objet.detailsImage = resultAggr[0];
+
+                    callback(true, "L'image y est", objet)
+                } else {
+                    callback(false, "Aucune image à ce propos", objet)
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception est lévée lors de la recherche de l'image : " + exception, objet)        
+    }
+}

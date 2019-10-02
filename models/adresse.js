@@ -28,3 +28,48 @@ module.exports.create = (newAdresse, callback) => {
         callback(false, "Une exception a été lévée lors de l'insertion de l'adresse : " + exception)        
     }
 }
+
+function findOneById(id, callback) {
+    collection.value.aggregate([
+        {
+            "$match": {
+                "_id": require("mongodb").ObjectId(id)
+            }
+        }
+    ]).toArray((err, resultAggr) => {
+        if (err) {
+            callback(false, "Une erreur dans la fonction de recupération d'une adresse : " + err)
+        } else {
+            if (resultAggr.length > 0) {
+                callback(true, "elle a été trouvée", resultAggr[0])
+            } else {
+                callback(false, "Aucune adresse n'occupe cet identifiant")
+            }
+        }
+    })
+}
+
+module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
+    try {
+        findOneById(objet.id_adresse, (isFound, message, resultAdresse) => {
+            if (isFound) {
+                objet.adresse = resultAdresse;
+
+                var mode = require("./mode_immobilier");
+
+                mode.initialize(db);
+                mode.getInfoForThisUserAndThisPublish(objet, (isGet, message, resultMode) => {
+                    if (isGet) {
+                        callback(true, "Le mode d'allocation et les autres info y sont", resultMode)
+                    } else {
+                        callback(false, message)
+                    }
+                })            
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée : " +exception)
+    }
+}

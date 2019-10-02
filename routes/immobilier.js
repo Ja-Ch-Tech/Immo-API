@@ -22,6 +22,9 @@ router.post('/publish', (req, res) => {
     entity.id_mode_immo = req.body.id_mode_immo;
     entity.id_type_immo = req.body.id_type_immo;
     entity.nbrePiece = req.body.nbrePiece;
+    entity.nbreChambre = req.body.nbreChambre;
+    entity.nbreDouche = req.body.nbreDouche;
+    entity.prix = req.body.prix;
     entity.surface = req.body.surface;
     entity.description = req.body.description;
 
@@ -48,6 +51,36 @@ router.post('/setImages', (req, res) => {
     model.initialize(db);
     model.setImage(props, (isSet, message, result) => {
         objetRetour.getEtat = isSet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200);
+        res.send(objetRetour);
+    })
+})
+
+//Pour les stats des types
+router.get('/getStatType', (req, res) => {
+    var objetRetour = require("./objet_retour").ObjetRetour();
+
+    model.initialize(db);
+    model.getDetailsForType((isGet, message, result) => {
+        objetRetour.getEtat = isGet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200);
+        res.send(objetRetour);
+    })
+})
+
+//Pour les nouvelles publications
+router.get('/getNew/:limit', (req, res) => {
+    var objetRetour = require("./objet_retour").ObjetRetour();
+
+    model.initialize(db);
+    model.getNewImmobilier(parseInt(req.params.limit), (isGet, message, result) => {
+        objetRetour.getEtat = isGet;
         objetRetour.getMessage = message;
         objetRetour.getObjet = result;
 

@@ -258,3 +258,29 @@ module.exports.testAccount = (objet, callback) => {
         callback(false, "Une exception de détermination de type de compte : " + exception)
     }
 }
+
+module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
+    try {
+        findOneById(objet.id_user, (isFound, message, resultUser) => {
+            if (isFound) {
+                objet.nomOwner = resultUser.nom;
+                objet.prenomOwner = resultUser.prenom;
+
+                var adresse = require("./adresse");
+
+                adresse.initialize(db);
+                adresse.getInfoForThisUserAndThisPublish(objet, (isGet, message, resultAdresse) => {
+                    if (isGet) {
+                        callback(true, "L'adresse et les autres info y sont", resultAdresse)
+                    } else {
+                        callback(false, message)
+                    }
+                })
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception est lévée : " +exception)
+    }
+}

@@ -125,6 +125,53 @@ function updateThis(filter, update, callback) {
     });
 }
 
+module.exports.getDetailsForType = (callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$group": {
+                    _id: {
+                        "id_type_immo": "$id_type_immo"
+                    },
+                    "count": {"$sum": 1}
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur lors de la récupération de détails : " +err)
+            } else {
+                if (resultAggr.length > 0) {
+                    var type_immobilier = require("./type_immobilier"),
+                        sortie = 0,
+                        listRetour = [];
+
+                    type_immobilier.initialize(db);
+                    for (let index = 0; index < resultAggr.length; index++) {
+                        type_immobilier.findOne(resultAggr[index]._id.id_type_immo, (isFound, message, result) => {
+                            sortie++;
+                            if (isFound) {
+                                listRetour.push({
+                                    "_id": "" + result._id,
+                                    "intitule": result.intitule,
+                                    "nbreProp": resultAggr[index].count
+                                })
+                            }
+
+                            if (sortie == resultAggr.length) {
+                                callback(true, "La liste des types est leurs stats", listRetour)
+                            }
+                        })
+                    }
+                } else {
+                    callback(false, "Aucun type n'y est fait reference")
+                }
+            }
+        })
+    } catch (exception) {
+        
+    }
+}
+
 /**
 |--------------------------------------------------
 | Pas encore fait
@@ -140,12 +187,52 @@ module.exports.getImmobilierByMode = (id_user, callback) => {
     }
 }
 
-//A continuer
 module.exports.getNewImmobilier = (limit, callback) => {
     try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "flag": true
+                }
+            },
+            {
+                "$sort": {
+                    "created_at": -1
+                }
+            },
+            {
+                "$limit": limit
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur de récupération de nouvelle publication : " +err)
+            } else {
+                if (resultAggr.length > 0) {
+                    var users = require("./users"),
+                        sortie = 0,
+                        listRetour = [];
 
+                    users.initialize(db);
+                    for (let index = 0; index < resultAggr.length; index++) {
+                        users.getInfoForThisUserAndThisPublish(resultAggr[index], (isGet, message, resultUsers) => {
+                            sortie++;
+                            if (isGet) {
+                                listRetour.push(resultUsers);
+                            }
+
+                            if (sortie == resultAggr.length) {
+                                callback(true, "Les news sont là", listRetour)
+                            }
+                        })
+                    }
+
+                } else {
+                    callback(false, "Aucune nouvelle publication")
+                }
+            }
+        })
     } catch (exception) {
-
+        callback(false, "Une exception lors de la récupération de nouvelle publication : " + exception)
     }
 }
 
