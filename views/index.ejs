@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script src="./javascripts/jquery.min.js"></script>
+  <title>Node js upload</title>
+</head>
+<body>
+  <div class="container">
+    <h1>Upload Javascript</h1>
+    <!-- <%= typeof msg != 'undefined' ?  msg : ''  %> -->
+    <form action="/upload/image/produit/myImage" method="post" enctype="multipart/form-data">
+      <label for="file" id="upload">Uploader</label>
+      <input type="file" name="myImage" id="file">
+      <input type="datetime-local" name="" id=""> <br>
+      <button type="submit">Soumettre la requête</button>
+    </form>
+    <br>
+    <img src="" alt="" id="imgPrev">
+  </div>
+  
+  <!-- Pour upload d'image -->
+  <!-- <script src="./javascripts/upload.js"></script> -->
+</body>
+</html>
