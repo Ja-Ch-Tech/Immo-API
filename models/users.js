@@ -28,36 +28,40 @@ module.exports.create = function (new_user, callback) {
             } else { //Si non le mot de passe a été bien hashé
 
                 new_user.login.password = hashePwd;
-                new_user.login.username = (new_user.prenom + "." + new_user.nom + Math.floor(Math.random() * 100)).toLowerCase();
                 new_user.id_adresse = null;
 
-                let type_users = require("./type_users");
+                testUsername(new_user, (isNotExist, message, result) => {
+                    if (isNotExist) {
+                        let type_users = require("./type_users");
 
-                type_users.initialize(db);
-                type_users.findOne(new_user.type, (isFound, messageType, resultType) => {
-                    if (isFound) {
-                        new_user.type = "" + resultType._id;
-                        //On appele la méthode insertOne (une methode propre à mongoDB) de notre collection qui doit prendre la structure de l'entité
-                        collection.value.insertOne(new_user, (err, result) => {
+                        type_users.initialize(db);
+                        type_users.findOne(new_user.type, (isFound, messageType, resultType) => {
+                            if (isFound) {
+                                new_user.type = "" + resultType._id;
+                                //On appele la méthode insertOne (une methode propre à mongoDB) de notre collection qui doit prendre la structure de l'entité
+                                collection.value.insertOne(new_user, (err, result) => {
 
-                            //On test s'il y a erreur
-                            if (err) {
-                                callback(false, "Une erreur est survénue lors de la création de l'utilisateur", "" + err);
-                            } else { //S'il n'y a pas erreur
+                                    //On test s'il y a erreur
+                                    if (err) {
+                                        callback(false, "Une erreur est survénue lors de la création de l'utilisateur", "" + err);
+                                    } else { //S'il n'y a pas erreur
 
-                                //On vérifie s'il y a des résultat renvoyé
-                                if (result) {
-                                    callback(true, "L'utilisateur est enregistré", result.ops[0])
-                                } else { //Si non l'etat sera false et on envoi un message
-                                    callback(false, "Désolé, l'utilisateur non enregistrer")
-                                }
+                                        //On vérifie s'il y a des résultat renvoyé
+                                        if (result) {
+                                            callback(true, "L'utilisateur est enregistré", result.ops[0])
+                                        } else { //Si non l'etat sera false et on envoi un message
+                                            callback(false, "Désolé, l'utilisateur non enregistrer")
+                                        }
+                                    }
+                                })
+                            } else {
+                                callback(false, messageType)
                             }
                         })
                     } else {
-                        callback(false, messageType)
+                        callback(false, message, result)
                     }
                 })
-
 
             }
         })
@@ -66,6 +70,31 @@ module.exports.create = function (new_user, callback) {
     } catch (exception) { //Si ce bloc ne passe pas on lève une exception
         callback(false, "Une exception a été lévée lors de la création de l'utilisateur : " + exception);
     }
+}
+
+function testUsername(objet, callback) {
+    if (objet.login.username) {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "login.username": objet.login.username
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors du test de username : " + err)
+            } else {
+                if (resultAggr.length > 0) {
+                    callback(false, "Celle-ci est déjà utilisé, nous vous suggérons", { suggest: [(objet.prenom + objet.nom + Math.ceil(Math.random() * 100)).toLowerCase(), (objet.prenom[0] + "." +objet.nom + Math.ceil(Math.random() * 100)).toLowerCase()] })
+                } else {
+                    callback(true, "Autorisation accordé")
+                }
+            }
+        })
+    } else {
+        callback(false, "Aucun username n'est spécifié, nous vous suggérons", { suggest: (objet.prenom + objet.nom + Math.ceil(Math.random * 100)) })
+    }
+
 }
 
 /**
@@ -236,7 +265,7 @@ module.exports.testAccount = (objet, callback) => {
             }
         ]).toArray((err, resultAggr) => {
             if (err) {
-                callback(false, "Une erreur de détermination de type de compte : " +err)
+                callback(false, "Une erreur de détermination de type de compte : " + err)
             } else {
                 if (resultAggr.length > 0) {
                     let type_users = require("./type_users");
@@ -281,6 +310,6 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
             }
         })
     } catch (exception) {
-        callback(false, "Une exception est lévée : " +exception)
+        callback(false, "Une exception est lévée : " + exception)
     }
 }

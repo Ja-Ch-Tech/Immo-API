@@ -230,9 +230,26 @@ module.exports.getNewImmobilier = (limit, callback) => {
 //A continuer
 module.exports.getImmobilierByMode = (mode, callback) => {
     try {
-        
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "id_mode_immo": mode,
+                    "flag": true
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors de la recuperation du des publication de ce mode : "  +err)
+            } else {
+                if (resultAggr.length > 0) {
+                    
+                } else {
+                    callback(false, "Aucune publication pour ce mode")
+                }
+            }
+        })
     } catch (exception) {
-        
+        callback(false, "Une erreur est survenue lors de la recuperation du des publication de ce mode : " + exception)        
     }
 }
 
