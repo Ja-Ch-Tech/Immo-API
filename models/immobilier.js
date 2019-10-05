@@ -172,21 +172,6 @@ module.exports.getDetailsForType = (callback) => {
     }
 }
 
-/**
-|--------------------------------------------------
-| Pas encore fait
-|--------------------------------------------------
-*/
-
-//A continuer
-module.exports.getImmobilierByMode = (id_user, callback) => {
-    try {
-        
-    } catch (exception) {
-        
-    }
-}
-
 module.exports.getNewImmobilier = (limit, callback) => {
     try {
         collection.value.aggregate([
@@ -235,6 +220,22 @@ module.exports.getNewImmobilier = (limit, callback) => {
         callback(false, "Une exception lors de la récupération de nouvelle publication : " + exception)
     }
 }
+
+/**
+|--------------------------------------------------
+| Pas encore fait
+|--------------------------------------------------
+*/
+
+//A continuer
+module.exports.getImmobilierByMode = (mode, callback) => {
+    try {
+        
+    } catch (exception) {
+        
+    }
+}
+
 
 //A continuer
 module.exports.getTopImmobilier = (limit, callback) => {
