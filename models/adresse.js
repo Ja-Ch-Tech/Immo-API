@@ -54,7 +54,7 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
         findOneById(objet.id_adresse, (isFound, message, resultAdresse) => {
             if (isFound) {
                 objet.adresse = resultAdresse;
-
+                delete objet.id_adresse;
                 var mode = require("./mode_immobilier");
 
                 mode.initialize(db);
@@ -71,5 +71,38 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
         })
     } catch (exception) {
         callback(false, "Une exception a été lévée : " +exception)
+    }
+}
+
+module.exports.findWithObjet = (objet, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "_id": require("mongodb").ObjectId(objet.id_adresse)
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur lors de la récupération de l'adresse : " +err)
+            } else {
+                if (resultAggr.length > 0) {
+                    objet.adresse = {
+                        "commune": resultAggr[0].commune,
+                        "avenue": resultAggr[0].avenue,
+                        "numero": resultAggr[0].numero,
+                        "reference": resultAggr[0].reference
+                    };
+
+                    delete objet.id_adresse;
+
+                    callback(true, "l'adresse est là", objet)
+                } else {
+                    callback(false, "Aucune adresse n'a été répertorié à ce niveau")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception lors de la récupération de l'adresse : " + exception)        
     }
 }

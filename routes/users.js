@@ -5,8 +5,8 @@ var model = require("../models/users");
 var db = require("../models/db");
 
 /* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
+router.get('/', function (req, res, next) {
+    res.send('respond with a resource');
 });
 
 //Pour l'inscription de n'importe quel client ---> Client ou Proprio
@@ -23,7 +23,7 @@ router.post('/register', (req, res) => {
 
     model.initialize(db);
     model.create(entity, (isCreated, message, result) => {
-        
+
         objetRetour.getEtat = isCreated;
         objetRetour.getMessage = message;
         objetRetour.getObjet = result;
@@ -32,7 +32,6 @@ router.post('/register', (req, res) => {
         res.send(objetRetour);
     })
 })
-
 
 //Connexion au site
 router.post('/login', (req, res) => {
@@ -61,6 +60,51 @@ router.post('/setAdress/:id_user', (req, res) => {
 
     model.initialize(db);
     model.upAdresse(req.params.id_user, entity, (isUp, message, result) => {
+        objetRetour.getEtat = isUp;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200);
+        res.send(objetRetour);
+    })
+
+})
+
+//Permet de définir ou de mettre à jour le profil de l'utilisateur
+router.post('/upProfil', (req, res) => {
+    var objetRetour = require("./objet_retour").ObjetRetour(),
+        objet = {
+            "id": req.body.id,
+            "nom": req.body.nom,
+            "prenom": req.body.prenom,
+            "username": req.body.username,
+        };
+
+    model.initialize(db);
+    model.upProfil(objet, (isUp, message, result) => {
+        
+        objetRetour.getEtat = isUp;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200);
+        res.send(objetRetour);
+    })
+
+})
+
+//Permet de définir ou de mettre à jour le profil de l'utilisateur
+router.post('/upPassword', (req, res) => {
+    var objetRetour = require("./objet_retour").ObjetRetour(),
+        objet = {
+            "id": req.body.id,
+            "oldPassword": req.body.ancienMdp,
+            "newPassword": req.body.nouveauMdp
+        };
+
+    model.initialize(db);
+    model.upProfil(objet, (isUp, message, result) => {
+
         objetRetour.getEtat = isUp;
         objetRetour.getMessage = message;
         objetRetour.getObjet = result;

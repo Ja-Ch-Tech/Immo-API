@@ -5,7 +5,6 @@ var collection = {
     value: null
 }
 
-
 module.exports.initialize = (db) => {
 
     collection.value = db.get().collection("users");
@@ -85,7 +84,7 @@ function testUsername(objet, callback) {
                 callback(false, "Une erreur est survenue lors du test de username : " + err)
             } else {
                 if (resultAggr.length > 0) {
-                    callback(false, "Celle-ci est déjà utilisé, nous vous suggérons", { suggest: [(objet.prenom + objet.nom + Math.ceil(Math.random() * 100)).toLowerCase(), (objet.prenom[0] + "." +objet.nom + Math.ceil(Math.random() * 100)).toLowerCase()] })
+                    callback(false, "Celle-ci est déjà utilisé, nous vous suggérons", { suggest: [(objet.prenom + objet.nom + Math.ceil(Math.random() * 100)).toLowerCase(), (objet.prenom[0] + "." + objet.nom + Math.ceil(Math.random() * 100)).toLowerCase()] })
                 } else {
                     callback(true, "Autorisation accordé")
                 }
@@ -178,7 +177,6 @@ function findOneById(id, callback) {
         }
     })
 }
-
 
 //Pour la mise à jour de l'adresse
 module.exports.upAdresse = (id_user, newAdresse, callback) => {
@@ -295,6 +293,8 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
                 objet.nomOwner = resultUser.nom;
                 objet.prenomOwner = resultUser.prenom;
 
+                delete objet.id_user;
+
                 var adresse = require("./adresse");
 
                 adresse.initialize(db);
@@ -311,5 +311,89 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
         })
     } catch (exception) {
         callback(false, "Une exception est lévée : " + exception)
+    }
+}
+
+module.exports.upProfil = (objet, callback) => {
+    try {
+        var filter = {
+            "_id": require("mongodb").ObjectId(objet.id)
+        },
+            update = {
+                "$set": {
+                    "nom": objet.nom,
+                    "prenom": objet.prenom,
+                    "login.username": objet.username
+                }
+            }
+            ;
+
+        collection.value.updateOne(filter, update, (err, result) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors de la mise à jour du profile : " + err)
+            } else {
+                if (result) {
+                    callback(true, "La mise a abouti", result)
+                } else {
+                    callback(false, "Les indormations n'ont pas été mise à jour")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la mise à jour du profile : " + exception)
+    }
+}
+
+module.exports.upPassword = (objet, callback) => {
+    try {
+        findOneById(objet.id, (isFound, message, result) => {
+            if (isFound) {
+                var clearPwd = "Ja" + objet.oldPassword + "ch";
+
+                bcrypt.compare(clearPwd, result.login.password, function (errCompareCrypt, resultCompareCrypt) {
+
+                    if (errCompareCrypt) {
+                        callback(false, "Une erreur est survenue lors du décryptage du mot de passe : " + errCompareCrypt);
+                    } else {
+                        if (resultCompareCrypt) {
+
+                            var valeur_pwd = "Ja" + objet.newPassword + "ch";
+                            bcrypt.hash(valeur_pwd, 10, function (errHash, hashePwd) {
+                                if (errHash) {
+                                    callback(false, "Une erreur de cryptage y est rencontrée : " +errHash)
+                                } else {
+                                    var filter = {
+                                        "_id": objet.id,
+                                    },
+                                    update = {
+                                        "login.password": hashePwd
+                                    };
+
+                                    collection.value.updateOne(filter, update, (err, result) => {
+                                        if (err) {
+                                            callback(false, "Une erreur lors de la mise à jour du mot de passe : " +err)
+                                        } else {
+                                            if (result) {
+                                                callback(true, "Le mot de passe a été mise à jour", result)
+                                            } else {
+                                                callback(false, "Le mdp n'a pas subit de modification")
+                                            }
+                                        }
+                                    })
+                                }
+                            })
+
+                        } else {
+                            callback(false, "Le mot de passe ne correspond pas");
+                        }
+                    }
+                });
+            } else {
+                callback(false, message)
+            }
+        })
+
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la mise à jour du mot de passe : " + exception)
     }
 }

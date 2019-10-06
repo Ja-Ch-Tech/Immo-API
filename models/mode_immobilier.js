@@ -81,6 +81,7 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
         module.exports.findOne(objet.id_mode_immo, (isFound, message, resultMode) => {
             if (isFound) {
                 objet.mode = resultMode.intitule;
+                delete objet.id_mode_immo
 
                 var type = require("./type_immobilier");
 
@@ -98,5 +99,69 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
         })
     } catch (exception) {
         callback(false, "Une exception est lévée : " +exception)
+    }
+}
+
+module.exports.findWithObject = (objet, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "_id": require("mongodb").ObjectId(objet._id),
+                    "flag": true
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false ,"Une erreur est survenue lors de la récupération de détails du mode : " +err)
+            } else {
+                if (resultAggr.length > 0) {
+                    objet.intitule = resultAggr[0].intitule;
+
+                    callback(true, "Le mode y est", objet)
+                } else {
+                    callback(false, "Aucun mode n'y correspond")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la récupération de détails du mode : " + exception)        
+    }
+}
+
+module.exports.findWithObjectForAModeDefine = (objet, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "_id": require("mongodb").ObjectId(objet.id_mode_immo),
+                    "flag": true
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors de la récupération de détails du mode : " + err)
+            } else {
+                if (resultAggr.length > 0) {
+                    objet.intituleMode = resultAggr[0].intitule;
+                    delete objet.id_mode_immo
+
+                    var user = require("./users");
+
+                    user.initialize(db);
+                    user.getInfoForThisUserAndThisPublish(objet, (isGet, message, resultUser) => {
+                        if (isGet) {
+                            callback(true, "Les infos y sont", resultUser)
+                        } else {
+                            callback(false, message)
+                        }
+                    })
+                } else {
+                    callback(false, "Aucun mode n'y correspond")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la récupération de détails du mode : " + exception)
     }
 }

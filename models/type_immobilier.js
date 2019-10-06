@@ -135,6 +135,7 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
         module.exports.findOne(objet.id_type_immo, (isFound, message, resultType) => {
             if (isFound) {
                 objet.type = resultType.intitule;
+                delete objet.id_type_immo;
 
                 if (objet.images && objet.images.length > 0) {
                     var media = require("./media");

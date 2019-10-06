@@ -89,4 +89,54 @@ router.get('/getNew/:limit', (req, res) => {
     })
 })
 
+//Pour les publications d'un propriétaire
+router.get('/getAllByModeForOwner/:id_user', (req, res) => {
+    var objetRetour = require("./objet_retour").ObjetRetour(),
+        objet = {
+            "id_user": req.params.id_user
+        };
+
+    model.initialize(db);
+    model.getAllImmovableForOwner(objet, (isGet, message, result) => {
+        objetRetour.getEtat = isGet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200);
+        res.send(objetRetour);
+    })
+})
+
+//Pour les publications par modes
+router.get('/getAllByMode/:id', (req, res) => {
+    var objetRetour = require("./objet_retour").ObjetRetour(),
+        mode = {
+            "id": req.params.id
+        };
+
+    model.initialize(db);
+    model.getImmobilierByMode(mode, (isGet, message, result) => {
+        objetRetour.getEtat = isGet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200);
+        res.send(objetRetour);
+    })
+})
+
+//Pour les publications par modes
+router.get('/getDetails/:id_immo', (req, res) => {
+    var objetRetour = require("./objet_retour").ObjetRetour();
+
+    model.initialize(db);
+    model.getDetailsForImmovable(req.params.id_immo, (isGet, message, result) => {
+        objetRetour.getEtat = isGet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200);
+        res.send(objetRetour);
+    })
+})
 module.exports = router;

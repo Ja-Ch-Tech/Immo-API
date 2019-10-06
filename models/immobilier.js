@@ -133,12 +133,12 @@ module.exports.getDetailsForType = (callback) => {
                     _id: {
                         "id_type_immo": "$id_type_immo"
                     },
-                    "count": {"$sum": 1}
+                    "count": { "$sum": 1 }
                 }
             }
         ]).toArray((err, resultAggr) => {
             if (err) {
-                callback(false, "Une erreur lors de la récupération de détails : " +err)
+                callback(false, "Une erreur lors de la récupération de détails : " + err)
             } else {
                 if (resultAggr.length > 0) {
                     var type_immobilier = require("./type_immobilier"),
@@ -168,7 +168,7 @@ module.exports.getDetailsForType = (callback) => {
             }
         })
     } catch (exception) {
-        
+
     }
 }
 
@@ -190,7 +190,7 @@ module.exports.getNewImmobilier = (limit, callback) => {
             }
         ]).toArray((err, resultAggr) => {
             if (err) {
-                callback(false, "Une erreur de récupération de nouvelle publication : " +err)
+                callback(false, "Une erreur de récupération de nouvelle publication : " + err)
             } else {
                 if (resultAggr.length > 0) {
                     var users = require("./users"),
@@ -221,6 +221,147 @@ module.exports.getNewImmobilier = (limit, callback) => {
     }
 }
 
+//Module de récupération des immobiliers classé par mode d'ajouts
+module.exports.getAllImmovableForOwner = (objet, callback) => {
+    try {
+        var user = require("./users");
+
+        user.initialize(db);
+        user.testAccount(objet, (isOwner, message, resultOwner) => {
+            if (isOwner) {
+
+                collection.value.aggregate([
+                    {
+                        "$match": {
+                            "id_user": objet.id_user
+                        }
+                    },
+                    {
+                        "$group": {
+                            "_id": "$id_mode_immo",
+                            "data": {
+                                "$push": {
+                                    "surface": "$surface",
+                                    "nbrePiece": "$nbrePiece",
+                                    "nbreChambre": "$nbreChambre",
+                                    "nbreDouche": "$nbreDouche",
+                                    "prix": "$prix",
+                                    "images": "$images",
+                                    "id_adresse": "$id_adresse",
+                                    "description": "$description",
+                                    "created_at": "$created_at"
+                                }
+                            }
+                        }
+                    }
+                ]).toArray((err, resultAggr) => {
+                    if (err) {
+                        callback(false, "Une erreur est survenue lors de la récupération des biens par mode du propriétaire : " + err)
+                    } else {
+                        if (resultAggr.length > 0) {
+                            var mode = require("./mode_immobilier"),
+                                adresse = require("./adresse"),
+                                sortieMode = 0,
+                                lastOut = [];
+
+                            mode.initialize(db);
+                            adresse.initialize(db);
+
+                            for (let index = 0; index < resultAggr.length; index++) {
+                                mode.findWithObject(resultAggr[index], (isFound, message, resultMode) => {
+
+                                    if (isFound) {
+
+                                        var objetOut = {
+                                            "mode": resultMode.intitule,
+                                            "immobiliers": []
+                                        }
+
+                                        var sortieImmo = 0,
+                                            listImmo = [];
+
+                                        for (let c = 0; c < resultAggr[index].data.length; c++) {
+                                            adresse.findWithObjet(resultAggr[index].data[c], (isFound, message, resultAdresse) => {
+
+                                                if (isFound) {
+                                                    listImmo.push({
+                                                        "surface": resultAdresse.surface,
+                                                        "nbrePiece": resultAdresse.nbrePiece,
+                                                        "nbreChambre": resultAdresse.nbreChambre,
+                                                        "nbreDouche": resultAdresse.nbreDouche,
+                                                        "prix": resultAdresse.prix,
+                                                        "adresse": resultAdresse.adresse,
+                                                        "description": resultAdresse.description,
+                                                        "created_at": resultAdresse.created_at
+                                                    })
+                                                }
+
+                                                sortieImmo++;
+
+                                                if (sortieImmo == resultAggr[index].data.length) {
+                                                    objetOut.immobiliers.push(listImmo);
+                                                    lastOut.push(objetOut);
+                                                    sortieMode++
+                                                    if (sortieMode == resultAggr.length) {
+                                                        callback(true, "Les immobliers sont renvoyé en étant classé par mode d'ajout", lastOut)
+                                                    }
+                                                }
+                                            })
+                                        }
+                                    }
+                                })
+                            }
+                        } else {
+                            callback(false, "Aucun produit pour ce propriétaire")
+                        }
+                    }
+                })
+
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la récupération des biens par mode du propriétaire : " + exception)
+    }
+}
+
+//Module de récupération des details d'un immobilier
+module.exports.getDetailsForImmovable = (id, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "_id": require("mongodb").ObjectId(id),
+                    "flag": true
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur lors de la récupération de détails d'un immobilier : " + err)
+            } else {
+                if (resultAggr.length > 0) {
+                    var user = require("./users");
+
+                    user.initialize(db);
+                    user.getInfoForThisUserAndThisPublish(resultAggr[0], (isGet, message, resultUser) => {
+                        if (isGet) {
+                            callback(true, message, resultUser)
+                        } else {
+                            callback(false, message)
+                        }
+                    })
+                } else {
+                    callback(false, "Cet immobilier n'existe pas ou plus")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception est lévée lors de la récupération de détails d'un immobilier : " + exception)
+    }
+
+}
+
 /**
 |--------------------------------------------------
 | Pas encore fait
@@ -230,26 +371,45 @@ module.exports.getNewImmobilier = (limit, callback) => {
 //A continuer
 module.exports.getImmobilierByMode = (mode, callback) => {
     try {
+
         collection.value.aggregate([
             {
                 "$match": {
-                    "id_mode_immo": mode,
-                    "flag": true
+                    "id_mode_immo": mode.id
                 }
             }
         ]).toArray((err, resultAggr) => {
             if (err) {
-                callback(false, "Une erreur est survenue lors de la recuperation du des publication de ce mode : "  +err)
+                callback(false, "Une erreur est survenue lors de la récupération des biens par mode du propriétaire : " + err)
             } else {
                 if (resultAggr.length > 0) {
-                    
+                    var user = require("./users"),
+                        sortieMode = 0,
+                        lastOut = [];
+
+                    user.initialize(db);
+
+                    for (let index = 0; index < resultAggr.length; index++) {
+                        user.getInfoForThisUserAndThisPublish(resultAggr[index], (isFound, message, resultMode) => {
+                            sortieMode++
+                            if (isFound) {
+                                lastOut.push(resultMode)
+                            }
+
+
+                            if (sortieMode == resultAggr.length) {
+                                callback(true, "Les immobliers sont renvoyé en étant classé par mode d'ajout", lastOut)
+                            }
+                        })
+                    }
                 } else {
-                    callback(false, "Aucune publication pour ce mode")
+                    callback(false, "Aucun produit pour ce propriétaire")
                 }
             }
         })
+
     } catch (exception) {
-        callback(false, "Une erreur est survenue lors de la recuperation du des publication de ce mode : " + exception)        
+        callback(false, "Une exception a été lévée lors de la récupération des biens par mode du propriétaire : " + exception)
     }
 }
 
@@ -266,8 +426,8 @@ module.exports.getTopImmobilier = (limit, callback) => {
 //A continuer
 module.exports.searchImmobilier = (text, callback) => {
     try {
-        
+
     } catch (exception) {
-        
+
     }
 }

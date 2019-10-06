@@ -79,7 +79,7 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
             } else {
                 if (resultAggr.length > 0) {
                     objet.detailsImage = resultAggr[0];
-
+                    
                     callback(true, "L'image y est", objet)
                 } else {
                     callback(false, "Aucune image à ce propos", objet)
