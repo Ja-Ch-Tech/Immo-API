@@ -60,7 +60,23 @@ module.exports.getAll = (callback) => {
                 callback(false, "Une erreur est survenue lors de la récupération des types : " + err)
             } else {
                 if (resultAggr.length > 0) {
-                    callback(true, "Les types ont été renvoyé", resultAggr)
+                    var sortie = 0,
+                        immobilier = require("./immobilier"),
+                        listRetour = [];
+
+                    immobilier.initialize(db);
+                    for (let index = 0; index < resultAggr.length; index++) {
+                        immobilier.countImmovableForType(resultAggr[index], (isCount, message, resultImmo) => {
+                            sortie++;
+                            if (isCount) {
+                                listRetour.push(resultImmo);
+                            }
+
+                            if (sortie == resultAggr.length) {
+                                callback(true, "Les types ont été renvoyé", listRetour)
+                            }
+                        })
+                    }
                 } else {
                     callback(false, "Aucun type existant")
                 }

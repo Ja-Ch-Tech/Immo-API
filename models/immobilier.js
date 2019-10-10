@@ -464,21 +464,37 @@ module.exports.getImmovableForType = (id, callback) => {
         callback(false, "Une exception a été lévée lors de la récupération des biens par mode du propriétaire : " + exception)        
     }
 }
+
+module.exports.countImmovableForType = (objet, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "id_type_immo": "" + objet._id,
+                    "flag": true
+                }
+            },
+            {
+                "$count": "nbre"
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur lors du comptage : " +err)
+            } else {
+                objet.nbre = resultAggr.length > 0 ? resultAggr[0].nbre : 0
+                callback(true, "Le comptage est fini", objet)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors du comptage : " + exception)        
+    }
+}
 /**
 |--------------------------------------------------
 | Pas encore fait
 |--------------------------------------------------
 */
 
-
-//A continuer
-module.exports.getTopImmobilier = (limit, callback) => {
-    try {
-
-    } catch (exception) {
-
-    }
-}
 
 //A continuer
 module.exports.searchImmobilier = (text, callback) => {
