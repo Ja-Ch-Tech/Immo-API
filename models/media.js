@@ -54,6 +54,8 @@ module.exports.findImageForUser = (user, callback) => {
             } else {
                 if (resultAggr.length > 0) {
                     user.image = resultAggr[0];
+
+                    delete user.lien_profil;
                     callback(true, "Image trouvé", user)
                 } else {
                     callback(false, "Aucune image pour ce produit", user)

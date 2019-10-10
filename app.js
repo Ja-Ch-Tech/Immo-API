@@ -31,6 +31,7 @@ var typeImmoRouter = require('./routes/type_immobilier');
 var modeImmoRouter = require('./routes/mode_immobilier');
 var typeUsersRouter = require('./routes/type_users');
 var immoRouter = require('./routes/immobilier');
+var extraRouter = require('./routes/extra');
 
 var app = express();
 
@@ -56,6 +57,7 @@ app.use('/type', typeImmoRouter);
 app.use('/mode', modeImmoRouter);
 app.use('/typeUser', typeUsersRouter);
 app.use('/immobilier', immoRouter);
+app.use('/extra', extraRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -4,7 +4,6 @@ var router = express.Router();
 var model = require("../models/immobilier");
 var db = require("../models/db");
 
-
 //Pour publier un immobilier
 router.post('/publish', (req, res) => {
     var entity = require("../models/entities/immobilier").Immobilier(),

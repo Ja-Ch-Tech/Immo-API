@@ -292,6 +292,7 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
             if (isFound) {
                 objet.nomOwner = resultUser.nom;
                 objet.prenomOwner = resultUser.prenom;
+                objet.id_owner = resultUser._id;
 
                 delete objet.id_user;
 
@@ -360,18 +361,18 @@ module.exports.upPassword = (objet, callback) => {
                             var valeur_pwd = "Ja" + objet.newPassword + "ch";
                             bcrypt.hash(valeur_pwd, 10, function (errHash, hashePwd) {
                                 if (errHash) {
-                                    callback(false, "Une erreur de cryptage y est rencontrée : " +errHash)
+                                    callback(false, "Une erreur de cryptage y est rencontrée : " + errHash)
                                 } else {
                                     var filter = {
                                         "_id": objet.id,
                                     },
-                                    update = {
-                                        "login.password": hashePwd
-                                    };
+                                        update = {
+                                            "login.password": hashePwd
+                                        };
 
                                     collection.value.updateOne(filter, update, (err, result) => {
                                         if (err) {
-                                            callback(false, "Une erreur lors de la mise à jour du mot de passe : " +err)
+                                            callback(false, "Une erreur lors de la mise à jour du mot de passe : " + err)
                                         } else {
                                             if (result) {
                                                 callback(true, "Le mot de passe a été mise à jour", result)
@@ -395,5 +396,78 @@ module.exports.upPassword = (objet, callback) => {
 
     } catch (exception) {
         callback(false, "Une exception a été lévée lors de la mise à jour du mot de passe : " + exception)
+    }
+}
+
+//Permet de récupérer les infos d'un owner
+module.exports.getInfoOwner = (objet, callback) => {
+    try {
+        module.exports.testAccount(objet, (isOwner, message) => {
+            if (isOwner) {
+
+                collection.value.aggregate([
+                    {
+                        "$match": {
+                            "_id": require("mongodb").ObjectId(objet.id_user)
+                        }
+                    }
+                ]).toArray((err, resultAggr) => {
+                    if (err) {
+                        callback(false, "Une eereur lors de la récupération des infos basique du owners : " + err)
+                    } else {
+                        if (resultAggr.length > 0) {
+                            var adresse = require("./adresse");
+
+                            adresse.initialize(db);
+                            adresse.findWithObjet(resultAggr[0], (isFound, message, resultAdresse) => {
+                                var contact = require("./contact");
+
+                                contact.initialize(db);
+                                contact.getContactOwner(resultAdresse, (isGet, message, resultContact) => {
+                                    //Ajouter Images
+                                    callback(true, "Les infos du propriétaires sont là", resultContact)
+                                })
+                            })
+                        } else {
+                            callback("Aucune information sur lui, bizarre")
+                        }
+                    }
+                })
+
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la récupération des informations du propriétaire : " + exception)
+    }
+}
+
+module.exports.getInfoForAnyUser = (id, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "_id": require("mongodb").ObjectId(id)
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur s'est introduite lors de la récupéartion des infos de ce user: "+err)
+            } else {
+                if (resultAggr.length > 0) {
+                    var adresse = require("./adresse");
+
+                    adresse.initialize(db);
+                    adresse.findWithObjet(resultAggr[0], (isFound, message, resultAdresse) => {
+                        callback(isFound, message, resultAdresse)
+                    })
+                } else {
+                    callback(false, "Aucun n'utilisateur n'occupe cet id")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la récupéartion des infos de ce user: " + exception)        
     }
 }

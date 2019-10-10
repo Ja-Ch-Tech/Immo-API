@@ -96,9 +96,14 @@ module.exports.findWithObjet = (objet, callback) => {
 
                     delete objet.id_adresse;
 
-                    callback(true, "l'adresse est là", objet)
+                    var media = require("./media");
+
+                    media.initialize(db);
+                    media.findImageForUser(objet, (isFound, message, resultWithMedia) => {
+                        callback(true, "L'adresse est là", objet)                        
+                    })
                 } else {
-                    callback(false, "Aucune adresse n'a été répertorié à ce niveau")
+                    callback(false, "Aucune adresse n'a été répertorié à ce niveau", objet)
                 }
             }
         })

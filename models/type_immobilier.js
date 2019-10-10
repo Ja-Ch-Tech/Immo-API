@@ -54,13 +54,6 @@ module.exports.getAll = (callback) => {
                 "$match": {
                     "flag": true
                 }
-            },
-            {
-                "$project": {
-                    "_id": 1,
-                    "intitule": 1,
-                    "flag": 0
-                }
             }
         ]).toArray((err, resultAggr) => {
             if (err) {

@@ -135,4 +135,37 @@ router.post('/setImage', (req, res) => {
     })
 })
 
+//Récupère les infos du owner
+router.get("/infoOwner/:id", (req, res) => {
+    var objetRetour = require("./objet_retour").ObjetRetour(),
+        objet = {
+            "id_user": req.params.id
+        };
+    
+    model.initialize(db);
+    model.getInfoOwner(objet, (isGet, message, result) => {
+        objetRetour.getEtat = isGet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200);
+        res.send(objetRetour);
+    })
+})
+
+//Récupère les infos de n'importe quel user
+router.get("/infoForAnyUser/:id", (req, res) => {
+    var objetRetour = require("./objet_retour").ObjetRetour();
+
+    model.initialize(db);
+    model.getInfoForAnyUser(req.params.id, (isGet, message, result) => {
+        objetRetour.getEtat = isGet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200);
+        res.send(objetRetour);
+    })
+})
+
 module.exports = router;
