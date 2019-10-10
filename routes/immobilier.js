@@ -124,6 +124,22 @@ router.get('/getAllByMode/:id', (req, res) => {
     })
 })
 
+
+//Pour les publications pour un type
+router.get('/getAllForType/:id', (req, res) => {
+    var objetRetour = require("./objet_retour").ObjetRetour();
+
+    model.initialize(db);
+    model.getImmovableForType(req.params.id, (isGet, message, result) => {
+        objetRetour.getEtat = isGet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200);
+        res.send(objetRetour);
+    })
+})
+
 //Pour les publications par modes
 router.get('/getDetails/:id_immo', (req, res) => {
     var objetRetour = require("./objet_retour").ObjetRetour();
