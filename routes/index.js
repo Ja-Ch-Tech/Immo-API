@@ -82,7 +82,7 @@ function handleMedia(type_media, destination_value_temp, destination_value, obje
                     sortieMedia++;
 
                     //On crée une instance de l'entité "Media"
-                    var fichier = require("../models//entities/media").Media();
+                    var fichier = require("../models/entities/media").Media();
 
                     //instance à laquelle on attribue le nom du fichier comme valeur de la propriété "name"
                     fichier.name = file.filename;

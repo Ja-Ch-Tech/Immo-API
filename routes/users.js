@@ -121,7 +121,9 @@ router.post('/setImage', (req, res) => {
 
     var props = {
         "id_user": req.body.id_user,
-        "id_media": req.body.id_media
+        "name": req.body.name,
+        "size": req.body.size,
+        "path": req.body.path,
     }
 
     model.initialize(db);

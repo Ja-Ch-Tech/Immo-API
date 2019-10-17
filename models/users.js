@@ -227,26 +227,42 @@ module.exports.upAdresse = (id_user, newAdresse, callback) => {
  */
 module.exports.setImage = (props, callback) => {
     try {
-        var filter = {
-            "_id": require("mongodb").ObjectId(props.id_user)
-        },
-            update = {
-                "$set": {
-                    "lien_profil": "" + props.id_media
-                }
-            };
+        var entity = require("./entities/media").Media(),
+            media = require("./media");
 
-        collection.value.updateOne(filter, update, (err, resultUpdate) => {
-            if (err) {
-                callback(false, "Une erreur est survenue lors de la mise à jour de l'image de cet utilisateur : " + err)
+        entity.name = props.name;
+        entity.size = props.size;
+        entity.path = props.path;
+
+        media.initialize(db);
+        media.create(entity, (isCreated, message, resultMedia) => {
+            if (isCreated) {
+                var filter = {
+                    "_id": require("mongodb").ObjectId(props.id_user)
+                },
+                    update = {
+                        "$set": {
+                            "lien_profil": "" + resultMedia._id
+                        }
+                    };
+
+                collection.value.updateOne(filter, update, (err, resultUpdate) => {
+                    if (err) {
+                        callback(false, "Une erreur est survenue lors de la mise à jour de l'image de cet utilisateur : " + err)
+                    } else {
+                        if (resultUpdate) {
+                            callback(true, "Mise à jour a été faite", resultUpdate)
+                        } else {
+                            callback(false, "La mise à jour n'a pas abouti")
+                        }
+                    }
+                })
             } else {
-                if (resultUpdate) {
-                    callback(true, "Mise à jour a été faite", resultUpdate)
-                } else {
-                    callback(false, "La mise à jour n'a pas abouti")
-                }
+                callback(false, message)
             }
         })
+
+
     } catch (exception) {
         callback(false, "Une exception a été lévée lors de la mise à jour de l'image de cet utilisateur : " + exception)
     }
@@ -453,7 +469,7 @@ module.exports.getInfoForAnyUser = (id, callback) => {
             }
         ]).toArray((err, resultAggr) => {
             if (err) {
-                callback(false, "Une erreur s'est introduite lors de la récupéartion des infos de ce user: "+err)
+                callback(false, "Une erreur s'est introduite lors de la récupéartion des infos de ce user: " + err)
             } else {
                 if (resultAggr.length > 0) {
                     var adresse = require("./adresse");
@@ -468,6 +484,6 @@ module.exports.getInfoForAnyUser = (id, callback) => {
             }
         })
     } catch (exception) {
-        callback(false, "Une exception a été lévée lors de la récupéartion des infos de ce user: " + exception)        
+        callback(false, "Une exception a été lévée lors de la récupéartion des infos de ce user: " + exception)
     }
 }

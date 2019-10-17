@@ -154,4 +154,28 @@ router.get('/getDetails/:id_immo', (req, res) => {
         res.send(objetRetour);
     })
 })
+
+router.post('/search', (req, res) => {
+    var objetRetour = require("./objet_retour").ObjetRetour();
+
+    var params = {
+        mode: req.body.mode,
+        type: req.body.type,
+        commune: req.body.commune,
+        piece: req.body.nbrePiece,
+        maxAmount: parseInt(req.body.montantMax),
+        minAmount: parseInt(req.body.montantMin),
+        bathroom: req.body.nbreChambre
+    }
+
+    model.initialize(db);
+    model.smartFind(params.mode, params.type, params.commune, params.piece, params.maxAmount, params.minAmount, params.bathroom, (isFound, message, result) => {
+        objetRetour.getEtat = isFound;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200);
+        res.send(objetRetour);
+    })
+})
 module.exports = router;

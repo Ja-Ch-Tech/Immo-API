@@ -415,9 +415,9 @@ module.exports.getImmovableForType = (id, callback) => {
         typeImmo.findOne(id, (isFound, message, resultType) => {
             if (isFound) {
                 var info = {
-                        "categorie": resultType.intitule,
-                        "immobiliers": []
-                    };
+                    "categorie": resultType.intitule,
+                    "immobiliers": []
+                };
 
                 collection.value.aggregate([
                     {
@@ -434,7 +434,7 @@ module.exports.getImmovableForType = (id, callback) => {
                                 sortieMode = 0;
 
 
-                                user.initialize(db);
+                            user.initialize(db);
 
                             for (let index = 0; index < resultAggr.length; index++) {
                                 user.getInfoForThisUserAndThisPublish(resultAggr[index], (isFound, message, resultType) => {
@@ -461,7 +461,7 @@ module.exports.getImmovableForType = (id, callback) => {
         })
 
     } catch (exception) {
-        callback(false, "Une exception a été lévée lors de la récupération des biens par mode du propriétaire : " + exception)        
+        callback(false, "Une exception a été lévée lors de la récupération des biens par mode du propriétaire : " + exception)
     }
 }
 
@@ -479,28 +479,102 @@ module.exports.countImmovableForType = (objet, callback) => {
             }
         ]).toArray((err, resultAggr) => {
             if (err) {
-                callback(false, "Une erreur lors du comptage : " +err)
+                callback(false, "Une erreur lors du comptage : " + err)
             } else {
                 objet.nbre = resultAggr.length > 0 ? resultAggr[0].nbre : 0
                 callback(true, "Le comptage est fini", objet)
             }
         })
     } catch (exception) {
-        callback(false, "Une exception a été lévée lors du comptage : " + exception)        
+        callback(false, "Une exception a été lévée lors du comptage : " + exception)
     }
 }
-/**
-|--------------------------------------------------
-| Pas encore fait
-|--------------------------------------------------
-*/
 
-
-//A continuer
-module.exports.searchImmobilier = (text, callback) => {
+//A suivre
+module.exports.smartFind = (mode, type, commune, piece, maxAmount, minAmount, bathroom, callback) => {
     try {
 
-    } catch (exception) {
+        var filterForBath = bathroom ? {
+                "$match": {
+                    "nbreChambre": bathroom
+                }
+            } : {
+                "$match": {}
+            },
+            filterForPiece = piece ? {
+                "$match": {
+                    "nbrePiece": piece
+                }
+            } : {
+                "$match": {}
+            },
+            filterForMode = mode ? {
+                "$match": {
+                    "id_mode_immo": mode
+                }
+            } : {
+                "$match": {}
+            },
+            filterForType = type ? {
+                "$match": {
+                    "id_type_immo": type
+                }
+            } : {
+                "$match": {}
+            }
+        ;
 
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "prix": {"$gte": minAmount},
+                    "prix": {"$lte": maxAmount}
+                }
+            },
+            filterForBath,
+            filterForPiece,
+            filterForMode,
+            filterForType
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors de cette recherche : " + err)
+            } else {
+                if (resultAggr.length > 0) {
+                    var user = require("./users"),
+                        sortieMode = 0,
+                        info = {
+                            "immobiliers": []
+                        };
+
+
+                    user.initialize(db);
+
+                    for (let index = 0; index < resultAggr.length; index++) {
+                        user.getInfoForThisUserAndThisPublish(resultAggr[index], (isFound, message, resultType) => {
+                            sortieMode++
+                            if (isFound) {
+                                
+                                if (commune) {
+                                    if (commune.toUpperCase() === resultType.adresse.commune.toUpperCase()) {
+                                        delete resultType.type;
+                                        info.immobiliers.push(resultType)
+                                    }
+                                }
+                                
+                            }
+
+
+                            if (sortieMode == resultAggr.length) {
+                                callback(true, "Les immobliers sont renvoyé pour cette recherche", info)
+                            }
+                        })
+                    }
+                } else {
+                    callback(false, "Aucun truc")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une erreur est survenue lors de cette recherche : " + err)
     }
 }
