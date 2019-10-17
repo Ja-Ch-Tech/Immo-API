@@ -68,6 +68,9 @@ module.exports.findImageForUser = (user, callback) => {
                         callback(true, "Image trouvé", resultWithContacts)
                     })
                 } else {
+                    user.image = {};
+                    delete user.lien_profil;
+                    
                     var contact = require("./contact");
 
                     contact.initialize(db);
