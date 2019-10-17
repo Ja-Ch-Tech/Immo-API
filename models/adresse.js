@@ -104,6 +104,9 @@ module.exports.findWithObjet = (objet, callback) => {
                         callback(true, "L'adresse est là", objet)                        
                     })
                 } else {
+                    objet.adresse = {};
+
+                    delete objet.id_adresse;
                     var media = require("./media");
 
                     media.initialize(db);
