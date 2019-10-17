@@ -10,7 +10,25 @@ module.exports.initialize = (db) => {
     collection.value = db.get().collection("contact");
 }
 
-module.exports.getContactOwner = (objet, callback) => {
+module.exports.create = (newContact, callback) => {
+    try {
+        collection.value.insertOne(newContact, (err, result) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors de la définition du contact : " +err)
+            } else {
+                if (result) {
+                    callback(true, "Le contact a été enregistré", result.ops[0])
+                } else {
+                    callback(false, "Le contact n'a pas été enregistré")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la définition du contact : " + exception)        
+    }
+}
+
+module.exports.getContacts = (objet, callback) => {
     try {
         collection.value.aggregate([
             {
@@ -33,6 +51,6 @@ module.exports.getContactOwner = (objet, callback) => {
             }
         })
     } catch (exception) {
-        
+        callback(false, "Une exception a été lévée lors de la récupération des informations du proprio : " + err)        
     }
 }

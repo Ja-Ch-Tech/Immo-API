@@ -439,7 +439,7 @@ module.exports.getInfoOwner = (objet, callback) => {
                                 var contact = require("./contact");
 
                                 contact.initialize(db);
-                                contact.getContactOwner(resultAdresse, (isGet, message, resultContact) => {
+                                contact.getContacts(resultAdresse, (isGet, message, resultContact) => {
                                     //Ajouter Images
                                     callback(true, "Les infos du propriétaires sont là", resultContact)
                                 })
@@ -485,5 +485,29 @@ module.exports.getInfoForAnyUser = (id, callback) => {
         })
     } catch (exception) {
         callback(false, "Une exception a été lévée lors de la récupéartion des infos de ce user: " + exception)
+    }
+}
+
+module.exports.setContact = (contact, callback) => {
+    try {
+        findOneById(contact.id, (isOwner, message, resultOwner) => {
+            if (isOwner) {
+                var entity = require("./entities/contact").Contact(),
+                    model = require("./contact");
+
+                entity.email = contact.email;
+                entity.telephone = contact.telephone;
+                entity.id_owner = "" + resultOwner._id;
+
+                model.initialize(db);
+                model.create(entity, (isCreated, message, resultContact) => {
+                   callback(isCreated, message, resultContact)
+                })      
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        
     }
 }

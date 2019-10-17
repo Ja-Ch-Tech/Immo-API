@@ -91,7 +91,8 @@ module.exports.findWithObjet = (objet, callback) => {
                         "commune": resultAggr[0].commune,
                         "avenue": resultAggr[0].avenue,
                         "numero": resultAggr[0].numero,
-                        "reference": resultAggr[0].reference
+                        "reference": resultAggr[0].reference,
+                        "quartier": resultAggr[0].quartier ? resultAggr[0].quartier : null
                     };
 
                     delete objet.id_adresse;
@@ -103,7 +104,12 @@ module.exports.findWithObjet = (objet, callback) => {
                         callback(true, "L'adresse est là", objet)                        
                     })
                 } else {
-                    callback(false, "Aucune adresse n'a été répertorié à ce niveau", objet)
+                    var media = require("./media");
+
+                    media.initialize(db);
+                    media.findImageForUser(objet, (isFound, message, resultWithMedia) => {
+                        callback(false, "Aucune adresse n'a été répertorié à ce niveau", resultWithMedia)
+                    })
                 }
             }
         })

@@ -1,5 +1,5 @@
 //Appelle à la base de données
-var db_js = require("./db");
+var db = require("./db");
 
 var collection = {
     value: null
@@ -54,11 +54,26 @@ module.exports.findImageForUser = (user, callback) => {
             } else {
                 if (resultAggr.length > 0) {
                     user.image = resultAggr[0];
+                    user.image.lien = resultAggr[0].path.split("public")[resultAggr[0].path.split("public").length - 1] + "/" + resultAggr[0].name;
 
                     delete user.lien_profil;
-                    callback(true, "Image trouvé", user)
+                    delete user.image._id;
+                    delete user.image.size;
+                    delete user.image.created_at;
+
+                    var contact = require("./contact");
+
+                    contact.initialize(db);
+                    contact.getContacts(user, (isGet, message, resultWithContacts) => {
+                        callback(true, "Image trouvé", resultWithContacts)
+                    })
                 } else {
-                    callback(false, "Aucune image pour ce produit", user)
+                    var contact = require("./contact");
+
+                    contact.initialize(db);
+                    contact.getContacts(user, (isGet, message, resultWithContacts) => {
+                        callback(false, "Aucune image pour ce produit", resultWithContacts)
+                    })
                 }
             }
         })

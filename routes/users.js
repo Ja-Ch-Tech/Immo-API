@@ -57,6 +57,7 @@ router.post('/setAdress/:id_user', (req, res) => {
     entity.avenue = req.body.avenue;
     entity.numero = req.body.numero;
     entity.reference = req.body.ref ? req.body.ref : null;
+    entity.quartier = req.body.quartier ? req.body.quartier : null;
 
     model.initialize(db);
     model.upAdresse(req.params.id_user, entity, (isUp, message, result) => {
@@ -84,6 +85,28 @@ router.post('/upProfil', (req, res) => {
     model.upProfil(objet, (isUp, message, result) => {
         
         objetRetour.getEtat = isUp;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200);
+        res.send(objetRetour);
+    })
+
+})
+
+//Permet de définir ou de mettre à jour le contact
+router.post('/setContact', (req, res) => {
+    var objetRetour = require("./objet_retour").ObjetRetour(),
+        objet = {
+            "id": req.body.id,
+            "telephone": req.body.telephone,
+            "email": req.body.email
+        };
+
+    model.initialize(db);
+    model.setContact(objet, (isSet, message, result) => {
+
+        objetRetour.getEtat = isSet;
         objetRetour.getMessage = message;
         objetRetour.getObjet = result;
 

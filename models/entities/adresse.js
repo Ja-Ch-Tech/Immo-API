@@ -3,6 +3,7 @@ module.exports.Adresse = function () {
         commune: String,
         avenue: String,
         numero: String,
-        reference: String
+        reference: String,
+        quartier: String
     }
 }
