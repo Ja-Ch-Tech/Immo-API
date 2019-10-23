@@ -44,7 +44,7 @@ router.post('/setImages', (req, res) => {
 
     var props = {
         "id_immo": req.body.id_immo,
-        "images": req.body.images
+        "images": JSON.parse(req.body.images)
     }
 
     model.initialize(db);

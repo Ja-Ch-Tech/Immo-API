@@ -77,57 +77,41 @@ module.exports.publish = (newImmo, newAdresse, callback) => {
 module.exports.setImage = (props, callback) => {
     try {
         var filter = {
-            "_id": require("mongodb").ObjectId(props.id_immo)
-        },
-            sortie = 0,
-            listSortie = [];
-
-        props.images.map(image => {
-            let update = {
-                "$push": {
-                    "images": image
+                "_id": require("mongodb").ObjectId(props.id_immo)
+            },
+            update = {
+                "$set": {
+                    "images": props.images
                 }
             };
 
-            updateThis(filter, update, (isUp, message, result) => {
-                sortie++;
-                listSortie.push({
-                    image: image,
-                    state: isUp,
-                    message: message
-                })
-
-                if (sortie == props.images) {
-                    callback(true, "Les definitions sont finis en voici les détails", listSortie)
+        collection.value.updateOne(filter, update, (err, resultUpdate) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors de la mise à jour de l'image de cet utilisateur : " + err);
+            }
+            else {
+                if (resultUpdate) {
+                    callback(true, "Mise à jour a été faite", resultUpdate);
                 }
-            });
-        })
+                else {
+                    callback(false, "La mise à jour n'a pas abouti");
+                }
+            }
+        });
 
     } catch (exception) {
         callback(false, "Une exception a été lévée lors de la mise à jour de l'image de cet utilisateur : " + exception)
     }
 }
 
-//Mise à jour du tables des images
-function updateThis(filter, update, callback) {
-    collection.value.updateOne(filter, update, (err, resultUpdate) => {
-        if (err) {
-            callback(false, "Une erreur est survenue lors de la mise à jour de l'image de cet utilisateur : " + err);
-        }
-        else {
-            if (resultUpdate) {
-                callback(true, "Mise à jour a été faite", resultUpdate);
-            }
-            else {
-                callback(false, "La mise à jour n'a pas abouti");
-            }
-        }
-    });
-}
-
 module.exports.getDetailsForType = (callback) => {
     try {
         collection.value.aggregate([
+            {
+                "$match": {
+                    "flag": true
+                }
+            },
             {
                 "$group": {
                     _id: {
@@ -246,6 +230,7 @@ module.exports.getAllImmovableForOwner = (objet, callback) => {
                                     "nbreChambre": "$nbreChambre",
                                     "nbreDouche": "$nbreDouche",
                                     "prix": "$prix",
+                                    "flag": "$flag",
                                     "images": "$images",
                                     "id_adresse": "$id_adresse",
                                     "description": "$description",
@@ -368,7 +353,8 @@ module.exports.getImmobilierByMode = (mode, callback) => {
         collection.value.aggregate([
             {
                 "$match": {
-                    "id_mode_immo": mode.id
+                    "id_mode_immo": mode.id,
+                    "flag": true
                 }
             }
         ]).toArray((err, resultAggr) => {
@@ -422,7 +408,8 @@ module.exports.getImmovableForType = (id, callback) => {
                 collection.value.aggregate([
                     {
                         "$match": {
-                            "id_type_immo": id
+                            "id_type_immo": id,
+                            "flag": true
                         }
                     }
                 ]).toArray((err, resultAggr) => {
@@ -528,7 +515,8 @@ module.exports.smartFind = (mode, type, commune, piece, maxAmount, minAmount, ba
             {
                 "$match": {
                     "prix": {"$gte": minAmount},
-                    "prix": {"$lte": maxAmount}
+                    "prix": {"$lte": maxAmount},
+                    "flag": true
                 }
             },
             filterForBath,
