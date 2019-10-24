@@ -7,7 +7,7 @@ var collection = {
 
 module.exports.initialize = (db) => {
 
-    collection.value = db.get().collection("users");
+    collection.value = db.get().collection("admin");
 }
 
 /**
@@ -112,7 +112,8 @@ module.exports.login = function (valeur_username, password, callback) {
         },
         {
             "$project": {
-                "password": 1
+                "password": 1,
+                "username": 1
             }
         }
         ]).toArray(function (errAggr, resultAggr) {
@@ -134,7 +135,8 @@ module.exports.login = function (valeur_username, password, callback) {
                             if (resultCompareCrypt) {
 
                                 var objetRetour = {
-                                        "id_admin": "" + resultAggr[0]._id
+                                        "id_admin": "" + resultAggr[0]._id,
+                                        "username": resultAggr[0].username
                                     };
 
                                 callback(true, "Administrateur connecté", objetRetour)

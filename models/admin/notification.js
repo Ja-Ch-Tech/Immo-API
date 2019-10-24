@@ -1,4 +1,4 @@
-var db = require("..mode_immobilier/db");
+var db = require("../db");
 
 var collection = {
     value: null
@@ -10,14 +10,14 @@ module.exports.initialize = (db) => {
     collection.value = db.get().collection("extra");
 }
 
-module.exports.getNotification = (id_admin, limit,  callback) => {
+module.exports.getNotification = (id_admin, limit, callback) => {
     try {
         var admin = require("./admin");
 
         admin.initialize(db);
         admin.findOneById(id_admin, (isFound, message, resultFound) => {
             if (isFound) {
-                var customLimit = limit ? limit : {
+                var customLimit = limit ? {"$limit": parseInt(limit, 10)} : {
                     "$match": {}
                 };
 
@@ -32,12 +32,9 @@ module.exports.getNotification = (id_admin, limit,  callback) => {
                     },
                     {
                         "$project": {
-                            "_id": 1,
-                            "id_owner": 0,
                             "id_user": 1,
                             "id_immo": 1,
-                            "created_at": 1,
-                            "count": {"$sum": 1}
+                            "created_at": 1
                         }
                     },
                     {
@@ -51,9 +48,29 @@ module.exports.getNotification = (id_admin, limit,  callback) => {
                         callback(false, "Une erreur est survenue lors de la récupération des notification de la publication des immo : " +err)
                     } else {
                         if (resultAggr.length > 0) {
-                            var immo = require("../immobilier");
+                            var immo = require("../immobilier"),
+                                sortieNotif = 0,
+                                listRetour = [];
 
                             immo.initialize(db);
+                            for (let index = 0; index < resultAggr.length; index++) {
+                                immo.getDetailsForImmovable(resultAggr[index].id_immo, (isGet, message, resultDetails) => {
+                                    sortieNotif++;
+                                    if (isGet) {
+                                        listRetour.push({
+                                            infoNotif: resultAggr[index],
+                                            details: resultDetails
+                                        })
+                                    }
+
+                                    if (sortieNotif == resultAggr.length) {
+                                        let obj = {
+                                            notifications: listRetour
+                                        };
+                                        callback(true, "Les notifications ont été renvoyé", obj)
+                                    }
+                                })
+                            }
                         } else {
                             callback(false, "Aucune notification sur la publication")
                         }
