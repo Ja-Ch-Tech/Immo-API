@@ -97,3 +97,23 @@ module.exports.isOwners = (id, callback) => {
         callback(false, "Une exception de détermination : " + exception)        
     }
 }
+
+/**
+ * Module permettant de récupérer l'intitule d'un type d'utilisateur
+ * Ce module est utilisé dans l'admin
+ */
+module.exports.getIntituleForAdmin = (objet, callback) => {
+    try {
+        module.exports.findOne(objet._id.type, (isFound, message, resultFound) => {
+            if (isFound) {
+                objet._id.type = resultFound.intitule;
+
+                callback(true, "L'intitule est renvoyé à l'admin", objet)
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la récupération de l'intitule du type de l'utilisateur : " +exception)
+    }
+}

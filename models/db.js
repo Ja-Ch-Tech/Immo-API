@@ -12,7 +12,7 @@ module.exports.connect = (url, callback) => {
     } else {
 
         if (url) {
-            mongodb.MongoClient.connect(url, (err, client) => {
+            mongodb.MongoClient.connect(url, { useNewUrlParser: true }, (err, client) => {
                 if (err) {
                     callback(false, "Une erreur est survenue lors de la connection : " + err);
                 } else {

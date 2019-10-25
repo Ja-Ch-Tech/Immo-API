@@ -32,4 +32,18 @@ router.get("/toggleValidation/:id_admin/:id_immo", (req, res) => {
     })
 })
 
+router.get("/count/:id_admin", (req, res) => {
+    var objetRetour = require("../objet_retour").ObjetRetour();
+
+    model.initialize(db);
+    model.countImmovable(req.params.id_admin, (isCount, message, result) => {
+        objetRetour.getEtat = isCount;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200);
+        res.send(objetRetour);
+    })
+})
+
 module.exports = router;
