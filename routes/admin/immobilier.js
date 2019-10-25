@@ -18,4 +18,18 @@ router.get("/getNotValidate/:id", (req, res) => {
     })
 })
 
+router.get("/toggleValidation/:id_admin/:id_immo", (req, res) => {
+    var objetRetour = require("../objet_retour").ObjetRetour();
+
+    model.initialize(db);
+    model.toggleTagValid(req.params.id_admin, req.params.id_immo, (isToggle, message, result) => {
+        objetRetour.getEtat = isToggle;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200);
+        res.send(objetRetour);
+    })
+})
+
 module.exports = router;

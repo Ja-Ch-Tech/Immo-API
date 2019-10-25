@@ -13,7 +13,7 @@ var db = require("./models/db");
 
 //mongodb+srv://anonymefr:taskok@frdrcpeter-ebpjm.mongodb.net/test?retryWrites=true&w=majority
 //mongodb://@localhost:27017/Immob?authSource=admin
-var string_con = 'mongodb+srv://anonymefr:taskok@frdrcpeter-ebpjm.mongodb.net/test?retryWrites=true&w=majority';
+var string_con = 'mongodb://@localhost:27017/Immob?authSource=admin';
 
 db.connect(string_con, (isConnected, resultConnect) => {
 

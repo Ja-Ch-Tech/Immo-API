@@ -584,3 +584,31 @@ module.exports.smartFind = (mode, type, commune, piece, maxAmount, minAmount, ba
         callback(false, "Une erreur est survenue lors de cette recherche : " + err)
     }
 }
+
+module.exports.toggleThis = (id_immo, updateVar, callback) => {
+    try {
+        var filter = {
+                "_id": require("mongodb").ObjectId(id_immo)
+            },
+            update = {
+                "$set": {
+                    "validate": updateVar
+                }
+            }
+        ;
+
+        collection.value.updateOne(filter, update, (err, result) => {
+            if (err) {
+                callback(false, "Une erreur lors de la mise à jour de champs de validation : " +err)
+            } else {
+                if (result) {
+                    callback(true, "La validation a abouti", result)
+                } else {
+                    callback(false, "Le champ n'a pas été mise à jour")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée de la mise à jour de champs de validation : " + exception)        
+    }
+}

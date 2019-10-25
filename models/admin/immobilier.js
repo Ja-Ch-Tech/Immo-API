@@ -69,6 +69,37 @@ module.exports.getAllNotValidate = (id_admin, callback) => {
         })
 
     } catch (exception) {
-        callback(false, "Une erreur lors de la récupération des immobiliers non-validé : " + err)        
+        callback(false, "Une erreur lors de la récupération des immobiliers non-validé : " + err)
+    }
+}
+
+module.exports.toggleTagValid = (id_admin, id_immo, callback) => {
+    try {
+        var admin = require("./admin");
+
+        admin.initialize(db);
+        admin.findOneById(id_admin, (isFound, message, resultFound) => {
+            if (isFound) {
+                var immo = require("../immobilier");
+
+                immo.initialize(db);
+                immo.getDetailsForImmovable(id_immo, (isGet, message, resultImmo) => {
+                    if (isGet) {
+                        var updateVar = resultImmo.validate ? false : true;
+
+                        immo.toggleThis(id_immo, updateVar, (isToggle, message, resultToggle) => {
+                            
+                            callback(isToggle, message, resultToggle)
+                        })
+                    } else {
+                        callback(false, message)
+                    }
+                })
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+
     }
 }
