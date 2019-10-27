@@ -26,4 +26,17 @@ router.post('/register', (req, res) => {
     })
 })
 
+router.post('/login', (req, res) => {
+    var objetRetour = require("../objet_retour").ObjetRetour();
+
+    model.initialize(db);
+    model.login(req.body.username, req.body.pswd, (isLogged, message, result) => {
+        objetRetour.getEtat = isLogged;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200);
+        res.send(objetRetour);
+    })
+})
 module.exports = router;

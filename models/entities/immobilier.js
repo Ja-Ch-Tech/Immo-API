@@ -11,7 +11,8 @@ module.exports.Immobilier = function Immobilier() {
         id_user: String,
         id_adresse: String,
         description: String,
-        flag: false,
+        flag: true,
+        validate: false,
         created_at: new Date()
     }
 }

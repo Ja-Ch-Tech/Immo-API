@@ -40,9 +40,20 @@ module.exports.publish = (newImmo, newAdresse, callback) => {
                                                 callback(false, "Une erreur est survenue lors de la publication de la " + resultType.intitule + " : " + err)
                                             } else {
                                                 if (result) {
-                                                    callback(true, "La publication a marché", result.ops[0])
+                                                    var entity = require("./entities/extra").Notification(),
+                                                        model = require("./extra");
+
+                                                    entity.id_owner = null;
+                                                    entity.id_user = result.ops[0].id_user;
+                                                    entity.id_immo = result.ops[0]._id;
+                                                    entity.typeNotif = "Owner publish";
+
+                                                    model.initialize(db);
+                                                    model.createNotification(entity, (isCreated, message, resultNotif) => {
+                                                        callback(true, "La publication a marché", result.ops[0])
+                                                    })
                                                 } else {
-                                                    callback(false, "La publication n'a pas abouti")
+                                                    callback(false, "La publication n'a pas abouti");
                                                 }
                                             }
                                         })
@@ -109,7 +120,8 @@ module.exports.getDetailsForType = (callback) => {
         collection.value.aggregate([
             {
                 "$match": {
-                    "flag": true
+                    "flag": true,
+                    "validate": true
                 }
             },
             {
@@ -161,7 +173,8 @@ module.exports.getNewImmobilier = (limit, callback) => {
         collection.value.aggregate([
             {
                 "$match": {
-                    "flag": true
+                    "flag": true,
+                    "validate": true
                 }
             },
             {
@@ -170,7 +183,7 @@ module.exports.getNewImmobilier = (limit, callback) => {
                 }
             },
             {
-                "$limit": limit
+                "$limit": limit ? limit : 4
             }
         ]).toArray((err, resultAggr) => {
             if (err) {
@@ -231,6 +244,7 @@ module.exports.getAllImmovableForOwner = (objet, callback) => {
                                     "nbreDouche": "$nbreDouche",
                                     "prix": "$prix",
                                     "flag": "$flag",
+                                    "validate": "$validate",
                                     "images": "$images",
                                     "id_adresse": "$id_adresse",
                                     "description": "$description",
@@ -354,7 +368,8 @@ module.exports.getImmobilierByMode = (mode, callback) => {
             {
                 "$match": {
                     "id_mode_immo": mode.id,
-                    "flag": true
+                    "flag": true,
+                    "validate": true
                 }
             }
         ]).toArray((err, resultAggr) => {
@@ -409,7 +424,8 @@ module.exports.getImmovableForType = (id, callback) => {
                     {
                         "$match": {
                             "id_type_immo": id,
-                            "flag": true
+                            "flag": true,
+                            "validate": true
                         }
                     }
                 ]).toArray((err, resultAggr) => {
@@ -458,7 +474,8 @@ module.exports.countImmovableForType = (objet, callback) => {
             {
                 "$match": {
                     "id_type_immo": "" + objet._id,
-                    "flag": true
+                    "flag": true,
+                    "validate": true
                 }
             },
             {
@@ -516,7 +533,8 @@ module.exports.smartFind = (mode, type, commune, piece, maxAmount, minAmount, ba
                 "$match": {
                     "prix": {"$gte": minAmount},
                     "prix": {"$lte": maxAmount},
-                    "flag": true
+                    "flag": true,
+                    "validate": true
                 }
             },
             filterForBath,

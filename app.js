@@ -36,6 +36,7 @@ var mediaRouter = require('./routes/media');
 
 //Pour l'administration
 var adminRouter = require('./routes/admin/admin');
+var immoAdminRouter = require('./routes/admin/immobilier');
 
 var app = express();
 
@@ -66,6 +67,7 @@ app.use('/media', mediaRouter);
 
 //Pour l'admin
 app.use('/admin', adminRouter);
+app.use('/admin/immobilier', immoAdminRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

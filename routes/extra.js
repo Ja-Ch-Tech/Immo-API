@@ -12,6 +12,7 @@ router.post('/interest', (req, res) => {
 
     entity.id_owner = req.body.id_owner;
     entity.id_user = req.body.id_user;
+    entity.id_immo = req.body.id_immo;
 
     model.initialize(db);
     model.SetInterest(entity, (isSet, message, result) => {
