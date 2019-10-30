@@ -1,5 +1,6 @@
 //Appelle à la base de données
-var db = require("./db");
+var db = require("./db"),
+    link = require("./includes/constante").Link();
 
 var collection = {
     value: null
@@ -90,23 +91,30 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
         collection.value.aggregate([
             {
                 "$match": {
-                    "_id": require("mongodb").ObjectId(objet.images[0].lien_images)
+                    "_id": require("mongodb").ObjectId(objet.lien_images)
                 }
             }
         ]).toArray((err, resultAggr) => {
             if (err) {
-                callback(false, "Une erreur lors de la recherche de l'image : " +err, objet)
+                callback(false, "Une erreur lors de la recherche de l'image : " +err)
             } else {
                 if (resultAggr.length > 0) {
-                    objet.detailsImage = resultAggr[0];
-                    
-                    callback(true, "L'image y est", objet)
+                    var splitter = resultAggr[0].path.split("public/")[resultAggr[0].path.split("public/").length - 1] + "/" + resultAggr[0].name;
+                    resultAggr[0].intitule = objet.name;
+                    resultAggr[0].srcFormat = link.API +"/"+ splitter;
+
+                    delete resultAggr[0]._id;
+                    delete resultAggr[0].name;
+                    delete resultAggr[0].path;
+                    delete resultAggr[0].created_at;
+
+                    callback(true, "L'image y est", resultAggr[0])
                 } else {
-                    callback(false, "Aucune image à ce propos", objet)
+                    callback(false, "Aucune image à ce propos")
                 }
             }
         })
     } catch (exception) {
-        callback(false, "Une exception est lévée lors de la recherche de l'image : " + exception, objet)        
+        callback(false, "Une exception est lévée lors de la recherche de l'image : " + exception)        
     }
 }

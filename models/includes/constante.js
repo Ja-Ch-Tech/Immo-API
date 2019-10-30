@@ -3,7 +3,7 @@
  */
 module.exports.Link = function Link() {
     return{
-        "LINK_API": "https://manitechapi.herokuapp.com/",
-        "LINK_WEB_SITE": "https://store-manitech.netlify.com"
+        "API": "https://immo-jach-api.herokuapp.com"
+        //"API": "http://localhost:3333"
     }
 }

@@ -147,14 +147,28 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
                 delete objet.id_type_immo;
 
                 if (objet.images && objet.images.length > 0) {
-                    var media = require("./media");
+                    var media = require("./media"),
+                        sortieImage = 0,
+                        listImage = [];
 
                     media.initialize(db);
-                    media.getInfoForThisUserAndThisPublish(objet, (isGet, message, resultWithMedia) => {
+                    for (let index = 0; index < objet.images.length; index++) {
+                        media.getInfoForThisUserAndThisPublish(objet.images[index], (isGet, message, resultWithMedia) => {
+                            sortieImage++;
+                            if (isGet) {
+                                listImage.push(resultWithMedia);                                
+                            }
 
-                        callback(true, message, resultWithMedia)
+                            if (sortieImage == objet.images.length) {
+                                objet.detailsImages = listImage;
+                                delete objet.images;
 
-                    })
+                                callback(true, "Les informations de cette publication sont disponible", objet)
+                            }
+
+                        })
+                    }
+                   
                 } else {
                     callback(true, "L'image n'existe pas, donc l'etape a été ignorer", objet)
                 }
