@@ -3,7 +3,8 @@ module.exports.Interest = function Interest() {
         "id_user": String,
         "id_owner": String,
         "id_immo": String,
-        "type": "Interest"
+        "type": "Interest",
+        "created_at": new Date()
     }
 }
 

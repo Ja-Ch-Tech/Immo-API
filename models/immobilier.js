@@ -88,8 +88,8 @@ module.exports.publish = (newImmo, newAdresse, callback) => {
 module.exports.setImage = (props, callback) => {
     try {
         var filter = {
-                "_id": require("mongodb").ObjectId(props.id_immo)
-            },
+            "_id": require("mongodb").ObjectId(props.id_immo)
+        },
             update = {
                 "$set": {
                     "images": props.images
@@ -234,82 +234,35 @@ module.exports.getAllImmovableForOwner = (objet, callback) => {
                         }
                     },
                     {
-                        "$group": {
-                            "_id": "$id_mode_immo",
-                            "data": {
-                                "$push": {
-                                    "surface": "$surface",
-                                    "nbrePiece": "$nbrePiece",
-                                    "nbreChambre": "$nbreChambre",
-                                    "nbreDouche": "$nbreDouche",
-                                    "prix": "$prix",
-                                    "flag": "$flag",
-                                    "validate": "$validate",
-                                    "images": "$images",
-                                    "id_adresse": "$id_adresse",
-                                    "description": "$description",
-                                    "created_at": "$created_at"
-                                }
-                            }
-                        }
+                        "$sort": { "created_at": -1}
                     }
                 ]).toArray((err, resultAggr) => {
                     if (err) {
                         callback(false, "Une erreur est survenue lors de la récupération des biens par mode du propriétaire : " + err)
                     } else {
                         if (resultAggr.length > 0) {
-                            var mode = require("./mode_immobilier"),
-                                adresse = require("./adresse"),
-                                sortieMode = 0,
-                                lastOut = [];
+                            var adresse = require("./adresse"),
+                                sortieImmo = 0,
+                                listImmo = [];
 
-                            mode.initialize(db);
                             adresse.initialize(db);
 
-                            for (let index = 0; index < resultAggr.length; index++) {
-                                mode.findWithObject(resultAggr[index], (isFound, message, resultMode) => {
+                            for (let c = 0; c < resultAggr.length; c++) {
+                                adresse.getInfoForThisUserAndThisPublish(resultAggr[c], (isFound, message, resultAdresse) => {
+
+                                    sortieImmo++;
 
                                     if (isFound) {
+                                        listImmo.push(resultAdresse)
+                                    }
 
-                                        var objetOut = {
-                                            "mode": resultMode.intitule,
-                                            "immobiliers": []
-                                        }
-
-                                        var sortieImmo = 0,
-                                            listImmo = [];
-
-                                        for (let c = 0; c < resultAggr[index].data.length; c++) {
-                                            adresse.findWithObjet(resultAggr[index].data[c], (isFound, message, resultAdresse) => {
-
-                                                if (isFound) {
-                                                    listImmo.push({
-                                                        "surface": resultAdresse.surface,
-                                                        "nbrePiece": resultAdresse.nbrePiece,
-                                                        "nbreChambre": resultAdresse.nbreChambre,
-                                                        "nbreDouche": resultAdresse.nbreDouche,
-                                                        "prix": resultAdresse.prix,
-                                                        "adresse": resultAdresse.adresse,
-                                                        "description": resultAdresse.description,
-                                                        "created_at": resultAdresse.created_at
-                                                    })
-                                                }
-
-                                                sortieImmo++;
-
-                                                if (sortieImmo == resultAggr[index].data.length) {
-                                                    objetOut.immobiliers.push(listImmo);
-                                                    lastOut.push(objetOut);
-                                                    sortieMode++
-                                                    if (sortieMode == resultAggr.length) {
-                                                        callback(true, "Les immobliers sont renvoyé en étant classé par mode d'ajout", lastOut)
-                                                    }
-                                                }
-                                            })
-                                        }
+                                    if (sortieImmo == resultAggr.length) {
+                                        callback(true, "Les immobliers sont renvoyé en étant classé par mode d'ajout", listImmo)
                                     }
                                 })
                             }
+
+
                         } else {
                             callback(false, "Aucun produit pour ce propriétaire")
                         }
@@ -499,10 +452,10 @@ module.exports.smartFind = (mode, type, commune, piece, maxAmount, minAmount, ba
     try {
 
         var filterForBath = bathroom ? {
-                "$match": {
-                    "nbreChambre": bathroom
-                }
-            } : {
+            "$match": {
+                "nbreChambre": bathroom
+            }
+        } : {
                 "$match": {}
             },
             filterForPiece = piece ? {
@@ -510,29 +463,29 @@ module.exports.smartFind = (mode, type, commune, piece, maxAmount, minAmount, ba
                     "nbrePiece": piece
                 }
             } : {
-                "$match": {}
-            },
+                    "$match": {}
+                },
             filterForMode = mode ? {
                 "$match": {
                     "id_mode_immo": mode
                 }
             } : {
-                "$match": {}
-            },
+                    "$match": {}
+                },
             filterForType = type ? {
                 "$match": {
                     "id_type_immo": type
                 }
             } : {
-                "$match": {}
-            }
-        ;
+                    "$match": {}
+                }
+            ;
 
         collection.value.aggregate([
             {
                 "$match": {
-                    "prix": {"$gte": minAmount},
-                    "prix": {"$lte": maxAmount},
+                    "prix": { "$gte": minAmount },
+                    "prix": { "$lte": maxAmount },
                     "flag": true,
                     "validate": true
                 }
@@ -559,14 +512,14 @@ module.exports.smartFind = (mode, type, commune, piece, maxAmount, minAmount, ba
                         user.getInfoForThisUserAndThisPublish(resultAggr[index], (isFound, message, resultType) => {
                             sortieMode++
                             if (isFound) {
-                                
+
                                 if (commune) {
                                     if (commune.toUpperCase() === resultType.adresse.commune.toUpperCase()) {
                                         delete resultType.type;
                                         info.immobiliers.push(resultType)
                                     }
                                 }
-                                
+
                             }
 
 
@@ -588,18 +541,18 @@ module.exports.smartFind = (mode, type, commune, piece, maxAmount, minAmount, ba
 module.exports.toggleThis = (id_immo, updateVar, callback) => {
     try {
         var filter = {
-                "_id": require("mongodb").ObjectId(id_immo)
-            },
+            "_id": require("mongodb").ObjectId(id_immo)
+        },
             update = {
                 "$set": {
                     "validate": updateVar
                 }
             }
-        ;
+            ;
 
         collection.value.updateOne(filter, update, (err, result) => {
             if (err) {
-                callback(false, "Une erreur lors de la mise à jour de champs de validation : " +err)
+                callback(false, "Une erreur lors de la mise à jour de champs de validation : " + err)
             } else {
                 if (result) {
                     callback(true, "La validation a abouti", result)
@@ -609,6 +562,6 @@ module.exports.toggleThis = (id_immo, updateVar, callback) => {
             }
         })
     } catch (exception) {
-        callback(false, "Une exception a été lévée de la mise à jour de champs de validation : " + exception)        
+        callback(false, "Une exception a été lévée de la mise à jour de champs de validation : " + exception)
     }
 }

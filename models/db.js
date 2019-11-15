@@ -12,13 +12,13 @@ module.exports.connect = (url, callback) => {
     } else {
 
         if (url) {
-            mongodb.MongoClient.connect(url, { useNewUrlParser: true }, (err, client) => {
+            mongodb.MongoClient.connect(url, { useNewUrlParser: true, useUnifiedTopology: true }, (err, client) => {
                 if (err) {
                     callback(false, "Une erreur est survenue lors de la connection : " + err);
                 } else {
 
                     state.db = client.db("Immob");
-                    callback(true, "connection établie avec la base de données de IMMOB...")
+                    callback(true, "connexion établie avec la base de données de IMMOB...")
                 }
             })
         } else {

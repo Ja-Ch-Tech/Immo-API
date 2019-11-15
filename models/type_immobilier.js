@@ -146,32 +146,40 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
                 objet.type = resultType.intitule;
                 delete objet.id_type_immo;
 
-                if (objet.images && objet.images.length > 0) {
-                    var media = require("./media"),
-                        sortieImage = 0,
-                        listImage = [];
+                var extra = require("./extra");
 
-                    media.initialize(db);
-                    for (let index = 0; index < objet.images.length; index++) {
-                        media.getInfoForThisUserAndThisPublish(objet.images[index], (isGet, message, resultWithMedia) => {
-                            sortieImage++;
-                            if (isGet) {
-                                listImage.push(resultWithMedia);                                
-                            }
+                extra.initialize(db);
+                extra.count(objet, (isCount, message, resultWithCount) => {
+                    
+                    if (resultWithCount.images && resultWithCount.images.length > 0) {
+                        var media = require("./media"),
+                            sortieImage = 0,
+                            listImage = [];
 
-                            if (sortieImage == objet.images.length) {
-                                objet.detailsImages = listImage;
-                                delete objet.images;
+                        media.initialize(db);
+                        for (let index = 0; index < resultWithCount.images.length; index++) {
+                            media.getInfoForThisUserAndThisPublish(resultWithCount.images[index], (isGet, message, resultWithMedia) => {
+                                sortieImage++;
+                                if (isGet) {
+                                    listImage.push(resultWithMedia);
+                                }
 
-                                callback(true, "Les informations de cette publication sont disponible", objet)
-                            }
+                                if (sortieImage == resultWithCount.images.length) {
+                                    resultWithCount.detailsImages = listImage;
+                                    delete resultWithCount.images;
 
-                        })
+                                    callback(true, "Les informations de cette publication sont disponible", resultWithCount)
+                                }
+
+                            })
+                        }
+
+                    } else {
+                        callback(true, "L'image n'existe pas, donc l'etape a été ignorer", resultWithCount)
                     }
-                   
-                } else {
-                    callback(true, "L'image n'existe pas, donc l'etape a été ignorer", objet)
-                }
+                })
+
+               
                 
             } else {
                 callback(false, message)

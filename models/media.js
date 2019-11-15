@@ -1,6 +1,7 @@
 //Appelle à la base de données
 var db = require("./db"),
-    link = require("./includes/constante").Link();
+    link = require("./includes/constante").Link(),
+    testyfile = require("testyfile");
 
 var collection = {
     value: null
@@ -99,16 +100,37 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
                 callback(false, "Une erreur lors de la recherche de l'image : " +err)
             } else {
                 if (resultAggr.length > 0) {
-                    var splitter = resultAggr[0].path.split("public/")[resultAggr[0].path.split("public/").length - 1] + "/" + resultAggr[0].name;
-                    resultAggr[0].intitule = objet.name;
-                    resultAggr[0].srcFormat = link.API +"/"+ splitter;
 
-                    delete resultAggr[0]._id;
-                    delete resultAggr[0].name;
-                    delete resultAggr[0].path;
-                    delete resultAggr[0].created_at;
+                    testyfile.verify((resultAggr[0].path + "/" + resultAggr[0].name), (isVerify, message, result) => {
 
-                    callback(true, "L'image y est", resultAggr[0])
+                        
+
+                        if (isVerify) {
+                            var splitter = resultAggr[0].path.split("public/")[resultAggr[0].path.split("public/").length - 1] + "/" + resultAggr[0].name;
+                            
+                            resultAggr[0].srcFormat = link.API + "/" + splitter;
+                            resultAggr[0].intitule = objet.name;
+
+                            delete resultAggr[0]._id;
+                            delete resultAggr[0].name;
+                            delete resultAggr[0].path;
+                            delete resultAggr[0].created_at;
+
+                            callback(true, "L'image y est", resultAggr[0])
+
+                        } else {
+                            resultAggr[0].srcFormat = '/images/house-default.jpg';
+                            resultAggr[0].intitule = 'Image par défaut';
+
+                            delete resultAggr[0]._id;
+                            delete resultAggr[0].name;
+                            delete resultAggr[0].path;
+                            delete resultAggr[0].created_at;
+
+                            callback(true, message, resultAggr[0])
+                        }
+                    })
+
                 } else {
                     callback(false, "Aucune image à ce propos")
                 }

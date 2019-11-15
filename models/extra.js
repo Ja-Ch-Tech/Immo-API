@@ -42,7 +42,7 @@ module.exports.SetInterest = (objet, callback) => {
                                     if (isCreated) {
                                         callback(true, "L'ajout dans l'archive y est", result)
                                     } else {
-                                        callback(true, "Vous intérréssé, malheureusement la notification n'est pas arrivé")
+                                        callback(true, "Vous êtes intérréssé, malheureusement la notification n'est pas arrivé")
                                     }
                                 })
                             } else {
@@ -51,7 +51,15 @@ module.exports.SetInterest = (objet, callback) => {
                         }
                     })
                 } else {
-                    callback(false, "A déjà été assigné")
+                    var user = require("./users"),
+                        model = {
+                            "id_user": objet.id_owner
+                        };
+
+                    user.initialize(db);
+                    user.getInfoOwner(model, (isGet, message, resultOwner) => {
+                        callback(isGet, message, resultOwner)
+                    })
                 }
             }
         })
@@ -67,7 +75,16 @@ module.exports.createNotification = (newNotif, callback) => {
                 callback(false, "Erreur d'insertion de la notification : " +err)
             } else {
                 if (result) {
-                    callback(true, "La notification a été envoyé")
+                    var user = require("./users"),
+                        model = {
+                            "id_user": result.ops[0].id_owner
+                        };
+
+                    user.initialize(db);
+                    user.getInfoOwner(model, (isGet, message, resultOwner) => {
+                        callback(isGet, message, resultOwner)
+                    })
+
                 } else {
                     callback(false, "Aucune insertion")
                 }
@@ -75,5 +92,39 @@ module.exports.createNotification = (newNotif, callback) => {
         })
     } catch (exception) {
         callback(false, "Exception lors d'insertion de la notification : " + exception)        
+    }
+}
+
+module.exports.count = (objet, callback) => {
+    try {
+        
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "id_immo": "" + objet._id,
+                    "type": "Interest"
+                }
+            },
+            {
+                "$count": "nbre"
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors du comptage des interêts : " +err)
+            } else {
+                
+                if (resultAggr.length > 0) {
+                    objet.nbreInterrest = resultAggr[0].nbre;
+
+                    callback(true, "Les gens qui vont vous contacter", objet)    
+                } else {
+                    objet.nbreInterrest = 0;
+
+                    callback(false, "Les gens qui vont vous contacter", objet)    
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors du comptage lors du comptage des interêts : " + exception)
     }
 }

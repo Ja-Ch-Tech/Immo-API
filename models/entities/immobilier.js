@@ -13,6 +13,7 @@ module.exports.Immobilier = function Immobilier() {
         description: String,
         flag: true,
         validate: false,
+        alredy_sold: false,
         created_at: new Date()
     }
 }
