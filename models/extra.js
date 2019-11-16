@@ -9,14 +9,14 @@ module.exports.initialize = (db) => {
     collection.value = db.get().collection("extra");
 }
 
-module.exports.SetInterest = (objet, callback) => {
+module.exports.SetInterest = (obj, callback) => {
     try {
         collection.value.aggregate([
             {
                 "$match": {
-                    "id_user": objet.id_user,
-                    "id_owner": objet.id_owner,
-                    "id_immo": objet.id_immo,
+                    "id_user": obj.id_user,
+                    "id_owner": obj.id_owner,
+                    "id_immo": obj.id_immo,
                     "type": "Interest"
                 }
             }
@@ -25,7 +25,7 @@ module.exports.SetInterest = (objet, callback) => {
                 callback(false, "Une erreur est survenue lors de l'ajout dans l'archive : " +err)
             } else {
                 if (resultAggr.length === 0) {
-                    collection.value.insertOne(objet, (err, result) => {
+                    collection.value.insertOne(obj, (err, result) => {
                         if (err) {
                             callback(false, "Une erreur est survenue lors de l'insert dans l'achive : " +err)
                         } else {
@@ -51,14 +51,29 @@ module.exports.SetInterest = (objet, callback) => {
                         }
                     })
                 } else {
-                    var user = require("./users"),
-                        model = {
-                            "id_user": objet.id_owner
+                    
+                    var immo = require("./immobilier"),
+                        objet = {
+                            "id_immo": obj.id_immo
                         };
 
-                    user.initialize(db);
-                    user.getInfoOwner(model, (isGet, message, resultOwner) => {
-                        callback(isGet, message, resultOwner)
+                    immo.initialize(db);
+                    immo.testIfInLocation(objet, (isOkay, message, resultTest) => {
+                        if (isOkay) {
+                            var user = require("./users"),
+                                model = {
+                                    "id_user": obj.id_owner
+                                };
+
+                            user.initialize(db);
+                            user.getInfoOwner(model, (isGet, message, resultOwner) => {
+                                resultOwner.isInLocation = isOkay;
+                                callback(isGet, message, resultOwner)
+                            })
+                        } else {
+                            
+                            callback(true, "Veuiilez contacter l'admin", {isInLocation: false})
+                        }
                     })
                 }
             }
@@ -75,14 +90,28 @@ module.exports.createNotification = (newNotif, callback) => {
                 callback(false, "Erreur d'insertion de la notification : " +err)
             } else {
                 if (result) {
-                    var user = require("./users"),
-                        model = {
-                            "id_user": result.ops[0].id_owner
+                    var immo = require("./immobilier"),
+                        objet = {
+                            "id_immo": result.ops[0].id_immo
                         };
 
-                    user.initialize(db);
-                    user.getInfoOwner(model, (isGet, message, resultOwner) => {
-                        callback(isGet, message, resultOwner)
+                    immo.initialize(db);
+                    immo.testIfInLocation(objet, (isOkay, message, resultTest) => {
+                        if (isOkay) {
+                            var user = require("./users"),
+                                model = {
+                                    "id_user": result.ops[0].id_owner
+                                };
+
+                            user.initialize(db);
+                            user.getInfoOwner(model, (isGet, message, resultOwner) => {
+                                resultOwner.isInLocation = isOkay;
+                                callback(isGet, message, resultOwner)
+                            })
+                        } else {
+
+                            callback(true, "Veuiilez contacter l'admin", { isInLocation: false })
+                        }
                     })
 
                 } else {

@@ -42,7 +42,7 @@ module.exports.getContacts = (objet, callback) => {
             } else {
                 if (resultAggr.length > 0) {
                     objet.contacts = resultAggr;
-                    callback(true, "Les contacts sonts là");
+                    callback(true, "Les contacts sonts là", objet);
                 } else {
                     objet.contacts = [];
                     
