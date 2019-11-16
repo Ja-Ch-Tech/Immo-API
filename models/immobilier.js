@@ -565,3 +565,32 @@ module.exports.toggleThis = (id_immo, updateVar, callback) => {
         callback(false, "Une exception a été lévée de la mise à jour de champs de validation : " + exception)
     }
 }
+
+module.exports.testIfInLocation = (objet, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "_id": require("mongodb").ObjectId(objet.id_immo)
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur lors de la recherche du type de cette immobilier : " +err)
+            } else {
+                if (resultAggr.length > 0) {
+                    var mode_immobilier = require("./mode_immobilier");
+
+                    mode_immobilier.initialize(db);
+                    mode_immobilier.testThisImmoIs(resultAggr[0].id_mode_immo, 'location', (isOkay, message, resultTest) => {
+                        callback(isOkay, message, resultTest)
+                    })
+                } else {
+                    callback(false, "Aucun immo a ce propos")
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exceptiona été lévée de la recherche du type de cette immobilier : " + exception)
+    }
+}

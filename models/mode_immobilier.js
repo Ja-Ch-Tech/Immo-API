@@ -165,3 +165,29 @@ module.exports.findWithObjectForAModeDefine = (objet, callback) => {
         callback(false, "Une exception a été lévée lors de la récupération de détails du mode : " + exception)
     }
 }
+
+
+module.exports.testThisImmoIs = (id_mode, genre, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "_id": require("mongodb").ObjectId(id_mode),
+                    "intitule": new RegExp(genre, 'i')
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur : " + err)
+            } else {
+                if (resultAggr.length > 0) {
+                    callback(true, "Nice !", resultAggr[0])
+                } else {
+                    callback(false, "L'immobilier n'est pas de type " + genre)
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception : " + exception)
+    }
+}

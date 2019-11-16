@@ -25,4 +25,22 @@ router.post('/interest', (req, res) => {
     })
 })
 
+router.get('/listUserInterest/:id_immo', (req, res) => {
+    var objetRetour = require("./objet_retour").ObjetRetour(),
+        objet = {
+            "id_immo": req.params.id_immo
+        };
+
+    model.initialize(db);
+    model.listUserInterestToImmo(objet, (isGet, message, result) => {
+        objetRetour.getEtat = isGet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200);
+        res.send(objetRetour);
+    })
+
+})
+
 module.exports = router;
