@@ -158,6 +158,7 @@ module.exports.count = (objet, callback) => {
     }
 }
 
+//Liste d'utilisateur s'étant intéressé par cette immobilier si et seulement si cette immobilier est en location
 module.exports.listUserInterestToImmo = (objet, callback) => {
     try {
         var immo = require("./immobilier");
@@ -209,12 +210,14 @@ module.exports.listUserInterestToImmo = (objet, callback) => {
     }
 }
 
+//Liste des immobiliers ajouter aux préférences de l'utilisateur
 module.exports.listImmoAddToExtraForUser = (id_user, callback) => {
     try {
         collection.value.aggregate([
             {
                 "$match": {
-                    "id_user": id_user
+                    "id_user": id_user,
+                    "mode": "Set"
                 }
             },
             {
@@ -275,5 +278,79 @@ module.exports.listImmoAddToExtraForUser = (id_user, callback) => {
         })
     } catch (exception) {
         callback(false, "Une exceptiona été lévée lors de la récupérations des immobiliers en favoris ou en intêret : " + exception)
+    }
+}
+
+module.exports.SetFavorite = (obj, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "id_user": obj.id_user,
+                    "id_immo": obj.id_immo,
+                    "type": "Favorite"
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors de l'ajout dans l'archive : " + err)
+            } else {
+                if (resultAggr.length === 0) {
+                    collection.value.insertOne(obj, (err, result) => {
+                        if (err) {
+                            callback(false, "Une erreur est survenue lors de l'insert dans l'achive : " + err)
+                        } else {
+                            if (result) {
+                                
+                                callback(true, "L'ajout dans les favoris", result.ops[0])
+                            } else {
+                                callback(false, "L'insertion n'a pas été faites")
+                            }
+                        }
+                    })
+                } else {
+                    var filter = {
+                        "id_immo": obj.id_immo,
+                        "id_user": obj.id_user,
+                        "type": "Favorite"
+                    };
+
+                    collection.value.aggregate([
+                        {
+                            "$match": filter
+                        }
+                    ]).toArray((err, result) => {
+                        if (err) {
+                            callback(false, "Une erreur lors de la redéfinition du flag : " +err)
+                        } else {
+                            if (result.length > 0) {
+                                var filterForThis = {
+                                    "_id": result[0]._id
+                                },
+                                update = {
+                                    "flag": result[0].flag ? false : true
+                                };
+
+                                collection.value.updateOne(filterForThis, update, (err, resultUp) => {
+                                    if (err) {
+                                        callback(false, "Une erreur dans la mise à jour du flag : " + err)
+                                    } else {
+                                        if (resultUp) {
+                                            callback(true, "La mise à jour du flag a été effective", resultUp)
+                                        } else {
+                                            callback(false, "Aucune mise à jour n'a été éffectué")
+                                        }
+                                    }
+                                })
+                            } else {
+                                
+                            }
+                        }
+                    })
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une excetpion a été lévée lors de l'ajout dans l'archive : " + exception)
     }
 }

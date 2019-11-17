@@ -43,12 +43,32 @@ router.get('/listUserInterest/:id_immo', (req, res) => {
 
 })
 
+//Route permettant de lister les préferences des l'utilisateurs
 router.get('/listImmoAddToExtraForUser/:id_user', (req, res) => {
     var objetRetour = require("./objet_retour").ObjetRetour();
 
     model.initialize(db);
     model.listImmoAddToExtraForUser(req.params.id_user, (isGet, message, result) => {
         objetRetour.getEtat = isGet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200);
+        res.send(objetRetour);
+    })
+})
+
+//Route permettant de mettre en favoris
+router.post('/setInFavorite', (req, res) => {
+    var objetRetour = require("./objet_retour").ObjetRetour(),
+        entity = require("../models/entities/extra").Favorite();
+
+    entity.id_immo = req.body.id_immo;
+    entity.id_user = req.body.id_user;
+
+    model.initialize(db);
+    model.SetFavorite(entity, (isSet, message, result) => {
+        objetRetour.getEtat = isSet;
         objetRetour.getMessage = message;
         objetRetour.getObjet = result;
 
