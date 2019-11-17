@@ -3,6 +3,7 @@ module.exports.Interest = function Interest() {
         "id_user": String,
         "id_owner": String,
         "id_immo": String,
+        "mode": "Set",
         "type": "Interest",
         "created_at": new Date()
     }
@@ -16,6 +17,18 @@ module.exports.Notification = function Notification() {
         "read": false,
         "typeNotif": String,
         "type": "Notification",
+        "created_at": new Date()
+    }
+}
+
+//Pour le favoris
+module.exports.Favorite = function Favorite() {
+    return {
+        "id_immo": String,
+        "id_user": String,
+        "flag": true,
+        "mode": "Set",
+        "type": "Favorite",
         "created_at": new Date()
     }
 }

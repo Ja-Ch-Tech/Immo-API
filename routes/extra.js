@@ -43,4 +43,18 @@ router.get('/listUserInterest/:id_immo', (req, res) => {
 
 })
 
+router.get('/listImmoAddToExtraForUser/:id_user', (req, res) => {
+    var objetRetour = require("./objet_retour").ObjetRetour();
+
+    model.initialize(db);
+    model.listImmoAddToExtraForUser(req.params.id_user, (isGet, message, result) => {
+        objetRetour.getEtat = isGet;
+        objetRetour.getMessage = message;
+        objetRetour.getObjet = result;
+
+        res.status(200);
+        res.send(objetRetour);
+    })
+})
+
 module.exports = router;
