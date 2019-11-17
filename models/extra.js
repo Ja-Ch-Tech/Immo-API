@@ -211,7 +211,7 @@ module.exports.listUserInterestToImmo = (objet, callback) => {
 }
 
 //Liste des immobiliers ajouter aux préférences de l'utilisateur
-module.exports.listImmoAddToExtraForUser = (id_user, callback) => {
+/*module.exports.listImmoAddToExtraForUser = (id_user, callback) => {
     try {
         collection.value.aggregate([
             {
@@ -246,30 +246,36 @@ module.exports.listImmoAddToExtraForUser = (id_user, callback) => {
                     immo.initialize(db);
 
                     for (let index = 0; index < resultAggr.length; index++) {
-                        var objet = {
+                        var obj = {
                             "type": resultAggr[index]._id.type,
-                            "immobiliers": []
+                            "immo": []
                         },
                         sortieImmo = 0;
 
                         sortie++;
 
-                        for (let c = 0; c < resultAggr[index].immobiliers.length; c++) {
-                            immo.getDetailsForImmovable(resultAggr[index].immobiliers[c].id_immo, (isGet, message, resultDetails) => {
+                        for (let a = 0; a < resultAggr[index].immobiliers.length; a++) {
+                            immo.getDetailsForImmovable(resultAggr[index].immobiliers[a].id_immo, (isGet, message, resultWithDetails) => {
                                 sortieImmo++;
-                                if (isGet) {
-                                    objet.immobiliers.push(resultDetails);
-                                }
+                                
 
-                                if (sortieImmo == resultAggr[index].immobiliers.length) {
-                                    listRetour.push(objet);
+                                obj.immo.push(resultWithDetails);
+                                console.log(obj);
+                                
 
-                                    if (sortie == resultAggr.length) {
-                                        callback(true, "Vos préferences sont renvoyées", listRetour)
+                                /*if (sortieImmo == resultAggr[index].immobiliers.length) {
+                                    listRetour.push(obj);
+
+                                    if (sortie === resultAggr.length) {
+                                        callback(true, "okay", listRetour)
                                     }
-                                }
+                                }*/
+
+                                
                             })
                         }
+                        
+                                
                     }
                 } else {
                     callback(false, "Aucun immobilier est dans ses intérêts ou dans ses favoris")
@@ -279,7 +285,7 @@ module.exports.listImmoAddToExtraForUser = (id_user, callback) => {
     } catch (exception) {
         callback(false, "Une exceptiona été lévée lors de la récupérations des immobiliers en favoris ou en intêret : " + exception)
     }
-}
+}*/
 
 module.exports.SetFavorite = (obj, callback) => {
     try {
