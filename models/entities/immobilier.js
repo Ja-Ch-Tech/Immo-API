@@ -14,6 +14,19 @@ module.exports.Immobilier = function Immobilier() {
         flag: true,
         validate: false,
         alredy_sold: false,
+        declineStory: Array,
         created_at: new Date()
+    }
+}
+
+/**
+ * Collection de déclinaison d'une demande de publication de l'immobilier
+ */
+module.exports.DeclineRequest = function DeclineRequest() {
+    return{
+        id_admin: String,
+        cause: String,
+        flag: true,
+        date: new Date()
     }
 }

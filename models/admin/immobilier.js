@@ -160,3 +160,63 @@ module.exports.countImmovable = (id_admin, callback) => {
         callback(false, "Une erreur est survenue lors du comptage par type de validation : " + exception)        
     }
 }
+
+module.exports.declineRequest = (id_admin, id_immo, cause, callback) => {
+    try {
+        var admin = require("./admin");
+
+        admin.initialize(db);
+        admin.findOneById(id_admin, (isFound, message, resultFound) => {
+            if (isFound) {
+                collection.value.aggregate([
+                    {
+                        "$match": {
+                            "_id": require("mongodb").ObjectId(id_immo)
+                        }
+                    }
+                ]).toArray((err, resultAggr) => {
+                    if (err) {
+                        callback(false, "Une erreur est survenue lors de la recherche de l'existance de l'immobilier : " +err)
+                    } else {
+                        if (resultAggr.length > 0) {
+                            var filter = {
+                                "_id": resultAggr[0]._id
+                            },
+                            miniEntity = require("../entities/immobilier").DeclineRequest();
+
+                            miniEntity.id_admin = "" + resultFound._id;
+                            miniEntity.cause = cause;
+
+                            var update = {
+                                "$push": {
+                                    "declineStory": miniEntity
+                                },
+                                "$set": {
+                                    "validate": false
+                                }
+                            };
+
+                            collection.value.updateOne(filter, update, (err, resultUp) => {
+                                if (err) {
+                                    callback(false, "Une erreur est survenue lors de la mise à jour de la déclinaison : " +err)
+                                } else {
+                                    if (resultUp) {
+                                        callback(true, "Vous avez décliné la publication", resultUp)
+                                    } else {
+                                        callback(false, "Aucune modification n'a été faites")
+                                    }
+                                }
+                            })
+                        } else {
+                            callback(false, "Cet immobiler n'existe pas désole")
+                        }
+                    }
+                })
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la mise à jour de la déclinaison : " + exception)
+    }
+}
