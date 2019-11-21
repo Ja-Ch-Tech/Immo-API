@@ -263,13 +263,13 @@ module.exports.listUserInterestToImmo = (objet, callback) => {
                                 console.log(obj);
                                 
 
-                                /*if (sortieImmo == resultAggr[index].immobiliers.length) {
+                                if (sortieImmo == resultAggr[index].immobiliers.length) {
                                     listRetour.push(obj);
 
                                     if (sortie === resultAggr.length) {
                                         callback(true, "okay", listRetour)
                                     }
-                                }*/
+                                }
 
                                 
                             })
