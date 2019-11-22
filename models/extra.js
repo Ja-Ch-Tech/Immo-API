@@ -62,12 +62,12 @@ module.exports.SetInterest = (obj, callback) => {
                         if (isOkay) {
                             var user = require("./users"),
                                 model = {
-                                    "id_user": obj.id_owner
+                                    "id_user": obj.id_owner,
+                                    "isInLocation": true
                                 };
 
                             user.initialize(db);
                             user.getInfoOwner(model, (isGet, message, resultOwner) => {
-                                resultOwner.isInLocation = isOkay;
                                 callback(isGet, message, resultOwner)
                             })
                         } else {
@@ -89,7 +89,7 @@ module.exports.createNotification = (newNotif, callback) => {
             if (err) {
                 callback(false, "Erreur d'insertion de la notification : " + err)
             } else {
-                if (result) {
+                if (result) {   
                     var immo = require("./immobilier"),
                         objet = {
                             "id_immo": result.ops[0].id_immo
@@ -100,12 +100,12 @@ module.exports.createNotification = (newNotif, callback) => {
                         if (isOkay) {
                             var user = require("./users"),
                                 model = {
-                                    "id_user": result.ops[0].id_owner
+                                    "id_user": result.ops[0].id_owner,
+                                    "isInLocation": true
                                 };
 
                             user.initialize(db);
                             user.getInfoOwner(model, (isGet, message, resultOwner) => {
-                                resultOwner.isInLocation = isOkay;
                                 callback(isGet, message, resultOwner)
                             })
                         } else {

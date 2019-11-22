@@ -433,6 +433,7 @@ module.exports.getInfoOwner = (objet, callback) => {
                     } else {
                         if (resultAggr.length > 0) {
                             var adresse = require("./adresse");
+                            resultAggr[0].isInLocation = true;
 
                             adresse.initialize(db);
                             adresse.findWithObjet(resultAggr[0], (isFound, message, resultAdresse) => {
