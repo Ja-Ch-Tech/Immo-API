@@ -209,7 +209,7 @@ module.exports.listUserInterestToImmo = (objet, callback) => {
         callback(false, "Erreur lors de la récupération des users : " + err)
     }
 }
-
+ 
 //Liste des immobiliers ajouter aux préférences de l'utilisateur
 /*module.exports.listImmoAddToExtraForUser = (id_user, callback) => {
     try {

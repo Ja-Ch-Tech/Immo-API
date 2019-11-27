@@ -19,17 +19,18 @@ module.exports.getNotification = (id_admin, limit, callback) => {
             if (isFound) {
                 var customLimit = limit ? {"$limit": parseInt(limit, 10)} : {
                     "$match": {}
-                };
+                },
+                reading = limit ? {"$match": {"read": false}} : {"$match": {}};
 
                 collection.value.aggregate([
                     {
                         "$match": {
                             "id_owner": null,
-                            "read": false,
                             "typeNotif": new RegExp("owner publish", "i"),
                             "type": new RegExp("notification", "i")
                         }
                     },
+                    reading,
                     {
                         "$project": {
                             "id_user": 1,
@@ -82,5 +83,45 @@ module.exports.getNotification = (id_admin, limit, callback) => {
         })
     } catch (exception) {
         callback(false, "Une exception a été lévée lors de la récupération des notification de la publication des immo : " + exception)        
+    }
+}
+
+/* Définie la lecture d'une notification */
+module.exports.setRead = (id_admin, id_notif, callback) => {
+    try {
+        var admin = require("./admin");
+
+        admin.initialize(db);
+        admin.findOneById(id_admin, (isFound, message, resultFound) => {
+            if (isFound) {
+                var filter = {
+                    "_id": require("mongodb").ObjectId(id_notif),
+                    "read": false,
+                    "type": "Notification"
+                },
+                update = {
+                    "$set": {
+                        "read": true,
+                        "id_admin": "" + resultFound._id
+                    }
+                };
+
+                collection.value.updateOne(filter, update, (err, result) => {
+                    if (err) {
+                        callback(false, "Une erreur est survenue lors de modification de la lecture de la notification : " +err)
+                    } else {
+                        if (result) {
+                            callback(true, "Lecture enregistrer", result)
+                        } else {
+                            callback(false, "Aucune modification n'a été éffectué")
+                        }
+                    }
+                })
+            } else {
+                callback(false, message)
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de modification de la lecture de la notification : " + exception)
     }
 }

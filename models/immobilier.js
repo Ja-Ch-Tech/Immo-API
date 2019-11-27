@@ -170,6 +170,12 @@ module.exports.getDetailsForType = (callback) => {
 
 module.exports.getNewImmobilier = (limit, callback) => {
     try {
+        var limits = limit && parseInt(limit) ? {
+            "$limit": parseInt(limit)
+        } : {
+                "$match": {}
+            };
+
         collection.value.aggregate([
             {
                 "$match": {
@@ -182,9 +188,7 @@ module.exports.getNewImmobilier = (limit, callback) => {
                     "created_at": -1
                 }
             },
-            {
-                "$limit": limit ? limit : 4
-            }
+            limits
         ]).toArray((err, resultAggr) => {
             if (err) {
                 callback(false, "Une erreur de récupération de nouvelle publication : " + err)
@@ -447,20 +451,22 @@ module.exports.countImmovableForType = (objet, callback) => {
     }
 }
 
-//A suivre
+/**
+ * Module permettant la recherche intelligente suivant plusieurs paramètres
+ */
 module.exports.smartFind = (mode, type, commune, piece, maxAmount, minAmount, bathroom, callback) => {
     try {
 
         var filterForBath = bathroom ? {
             "$match": {
-                "nbreChambre": bathroom
+                "nbreChambre": {"$lte": "" + bathroom}
             }
         } : {
                 "$match": {}
             },
             filterForPiece = piece ? {
                 "$match": {
-                    "nbrePiece": piece
+                    "nbrePiece": {"$lte": "" + piece }
                 }
             } : {
                     "$match": {}
@@ -484,8 +490,10 @@ module.exports.smartFind = (mode, type, commune, piece, maxAmount, minAmount, ba
         collection.value.aggregate([
             {
                 "$match": {
-                    "prix": { "$gte": minAmount },
-                    "prix": { "$lte": maxAmount },
+                    "$or": [
+                        {"prix": { "$gte": "" + minAmount }},
+                        {"prix": { "$lte": "" + maxAmount }}
+                    ],
                     "flag": true,
                     "validate": true
                 }
@@ -518,18 +526,24 @@ module.exports.smartFind = (mode, type, commune, piece, maxAmount, minAmount, ba
                                         delete resultType.type;
                                         info.immobiliers.push(resultType)
                                     }
+                                }else{
+                                    info.immobiliers.push(resultType)
                                 }
 
                             }
 
 
                             if (sortieMode == resultAggr.length) {
-                                callback(true, "Les immobliers sont renvoyé pour cette recherche", info)
+                                if (info.immobiliers.length > 0) {
+                                    callback(true, "Les immobliers sont renvoyé pour cette recherche", info)
+                                } else {
+                                    callback(false, "Aucun immobilier à ce propos")
+                                }
                             }
                         })
                     }
                 } else {
-                    callback(false, "Aucun truc")
+                    callback(false, "Aucun immobilier à ce propos")
                 }
             }
         })
