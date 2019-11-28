@@ -169,7 +169,7 @@ router.post('/search', (req, res) => {
     }
 
     model.initialize(db);
-    model.smartFind(params.mode, params.type, params.commune, params.piece, params.maxAmount, params.minAmount, params.bathroom, (isFound, message, result) => {
+    model.smartFind(req.body.id_user, params.mode, params.type, params.commune, params.piece, params.maxAmount, params.minAmount, params.bathroom, (isFound, message, result) => {
         objetRetour.getEtat = isFound;
         objetRetour.getMessage = message;
         objetRetour.getObjet = result;

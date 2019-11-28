@@ -89,7 +89,7 @@ module.exports.createNotification = (newNotif, callback) => {
             if (err) {
                 callback(false, "Erreur d'insertion de la notification : " + err)
             } else {
-                if (result) {   
+                if (result) {
                     var immo = require("./immobilier"),
                         objet = {
                             "id_immo": result.ops[0].id_immo
@@ -209,30 +209,20 @@ module.exports.listUserInterestToImmo = (objet, callback) => {
         callback(false, "Erreur lors de la récupération des users : " + err)
     }
 }
- 
+
 //Liste des immobiliers ajouter aux préférences de l'utilisateur
-/*module.exports.listImmoAddToExtraForUser = (id_user, callback) => {
+module.exports.listImmoAddToExtraForUserAccordingType = (id_user, type, callback) => {
     try {
         collection.value.aggregate([
             {
                 "$match": {
                     "id_user": id_user,
-                    "mode": "Set"
+                    "mode": "Set",
+                    "type": parseInt(type) == 0 ? "Interest" : (parseInt(type) == 1 ? "Favorite" : type)
                 }
             },
             {
-                "$group": {
-                    "_id": {
-                        "mode": "$mode",
-                        "type": "$type"
-                    },
-                    "immobiliers": {
-                        "$push": {
-                            "id_immo": "$id_immo",
-                            "created_at": "$created_at"
-                        }
-                    }
-                }
+                "$sort": { "created_at": -1 }
             }
         ]).toArray((err, resultAggr) => {
             if (err) {
@@ -246,46 +236,29 @@ module.exports.listUserInterestToImmo = (objet, callback) => {
                     immo.initialize(db);
 
                     for (let index = 0; index < resultAggr.length; index++) {
-                        var obj = {
-                            "type": resultAggr[index]._id.type,
-                            "immo": []
-                        },
-                        sortieImmo = 0;
+                        immo.getDetailsForImmovable(resultAggr[index].id_immo, (isGet, message, resultWithDetails) => {
+                            
+                            sortie++;
 
-                        sortie++;
+                            if (isGet) {
+                                listRetour.push(resultWithDetails);
+                            }
 
-                        for (let a = 0; a < resultAggr[index].immobiliers.length; a++) {
-                            immo.getDetailsForImmovable(resultAggr[index].immobiliers[a].id_immo, (isGet, message, resultWithDetails) => {
-                                sortieImmo++;
-                                
-
-                                obj.immo.push(resultWithDetails);
-                                console.log(obj);
-                                
-
-                                if (sortieImmo == resultAggr[index].immobiliers.length) {
-                                    listRetour.push(obj);
-
-                                    if (sortie === resultAggr.length) {
-                                        callback(true, "okay", listRetour)
-                                    }
-                                }
-
-                                
-                            })
-                        }
-                        
-                                
+                            if (sortie === resultAggr.length) {
+                                callback(true, "Les préference de type " + (parseInt(type) == 0 ? "Interrest" : (parseInt(type) == 1 ? "Favorite" : type)), listRetour)
+                            }
+                        })
                     }
+
                 } else {
-                    callback(false, "Aucun immobilier est dans ses intérêts ou dans ses favoris")
+                    callback(false, "Aucun immobilier est dans ses " + (parseInt(type) == 0 ? "intêrets" : (parseInt(type) == 1 ? "favoris" : type)))
                 }
             }
         })
     } catch (exception) {
         callback(false, "Une exceptiona été lévée lors de la récupérations des immobiliers en favoris ou en intêret : " + exception)
     }
-}*/
+}
 
 module.exports.SetFavorite = (obj, callback) => {
     try {
@@ -307,7 +280,7 @@ module.exports.SetFavorite = (obj, callback) => {
                             callback(false, "Une erreur est survenue lors de l'insert dans l'achive : " + err)
                         } else {
                             if (result) {
-                                
+
                                 callback(true, "L'ajout dans les favoris", result.ops[0])
                             } else {
                                 callback(false, "L'insertion n'a pas été faites")
@@ -327,15 +300,15 @@ module.exports.SetFavorite = (obj, callback) => {
                         }
                     ]).toArray((err, result) => {
                         if (err) {
-                            callback(false, "Une erreur lors de la redéfinition du flag : " +err)
+                            callback(false, "Une erreur lors de la redéfinition du flag : " + err)
                         } else {
                             if (result.length > 0) {
                                 var filterForThis = {
                                     "_id": result[0]._id
                                 },
-                                update = {
-                                    "flag": result[0].flag ? false : true
-                                };
+                                    update = {
+                                        "flag": result[0].flag ? false : true
+                                    };
 
                                 collection.value.updateOne(filterForThis, update, (err, resultUp) => {
                                     if (err) {
@@ -349,7 +322,7 @@ module.exports.SetFavorite = (obj, callback) => {
                                     }
                                 })
                             } else {
-                                
+
                             }
                         }
                     })

@@ -454,7 +454,7 @@ module.exports.countImmovableForType = (objet, callback) => {
 /**
  * Module permettant la recherche intelligente suivant plusieurs paramètres
  */
-module.exports.smartFind = (mode, type, commune, piece, maxAmount, minAmount, bathroom, callback) => {
+module.exports.smartFind = (id_user, mode, type, commune, piece, maxAmount, minAmount, bathroom, callback) => {
     try {
 
         var filterForBath = bathroom ? {
@@ -527,7 +527,7 @@ module.exports.smartFind = (mode, type, commune, piece, maxAmount, minAmount, ba
                                         info.immobiliers.push(resultType)
                                     }
                                 }else{
-                                    info.immobiliers.push(resultType)
+                                    info.immobiliers.push(resultType);
                                 }
 
                             }
@@ -537,13 +537,13 @@ module.exports.smartFind = (mode, type, commune, piece, maxAmount, minAmount, ba
                                 if (info.immobiliers.length > 0) {
                                     callback(true, "Les immobliers sont renvoyé pour cette recherche", info)
                                 } else {
-                                    callback(false, "Aucun immobilier à ce propos")
+                                    saveSearch(id_user, mode, type, commune, bathroom, piece, minAmount, maxAmount, callback)
                                 }
                             }
                         })
                     }
                 } else {
-                    callback(false, "Aucun immobilier à ce propos")
+                    saveSearch(id_user, mode, type, commune, bathroom, piece, minAmount, maxAmount, callback);
                 }
             }
         })
@@ -607,4 +607,23 @@ module.exports.testIfInLocation = (objet, callback) => {
     } catch (exception) {
         callback(false, "Une exceptiona été lévée de la recherche du type de cette immobilier : " + exception)
     }
+}
+
+function saveSearch(id_user, mode, type, commune, bathroom, piece, minAmount, maxAmount, callback) {
+    var logs = require("./log"), entity = require("./entities/log").Search();
+    entity.id_user = id_user ? id_user : null;
+    entity.mode = mode;
+    entity.typeImmo = type;
+    entity.locationAndOtherParams.commune = commune;
+    entity.locationAndOtherParams.nbreBadRoom = parseInt(bathroom);
+    entity.locationAndOtherParams.piece = parseInt(piece);
+    entity.locationAndOtherParams.minPrice = parseInt(minAmount);
+    entity.locationAndOtherParams.maxPrice = parseInt(maxAmount);
+    logs.initialize(db);
+    logs.saveSearch(entity, (isSave, message, resultSave) => {
+        if (isSave) {
+            console.log("Recherche sauvegarder...");
+        }
+        callback(false, "Aucun immobilier à ce propos, mais nous cherchons cela pour vous on vous notifiera");
+    });
 }

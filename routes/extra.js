@@ -44,11 +44,11 @@ router.get('/listUserInterest/:id_immo', (req, res) => {
 })
 
 //Route permettant de lister les préferences des l'utilisateurs
-router.get('/listImmoAddToExtraForUser/:id_user', (req, res) => {
+router.get('/listImmoAddToExtraForUserAccordingType/:id_user/:type', (req, res) => {
     var objetRetour = require("./objet_retour").ObjetRetour();
 
     model.initialize(db);
-    model.listImmoAddToExtraForUser(req.params.id_user, (isGet, message, result) => {
+    model.listImmoAddToExtraForUserAccordingType(req.params.id_user, parseInt(req.params.type), (isGet, message, result) => {
         objetRetour.getEtat = isGet;
         objetRetour.getMessage = message;
         objetRetour.getObjet = result;

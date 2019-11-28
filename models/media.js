@@ -81,7 +81,10 @@ module.exports.findImageForUser = (user, callback) => {
                     })
 
                 } else {
-                    user.image = {};
+                    user.image = {
+                        "srcFormat": '/images/Avatar-default.jpg',
+                        "name": 'Avatar par défaut'
+                    };
                     delete user.lien_profil;
                     
                     var contact = require("./contact");
