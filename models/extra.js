@@ -4,11 +4,13 @@ var collection = {
     value: null
 }
 
+//Initialisation de la collection
 module.exports.initialize = (db) => {
 
     collection.value = db.get().collection("extra");
 }
 
+/* Module permettant la définition dans les intêrets du client */
 module.exports.SetInterest = (obj, callback) => {
     try {
         collection.value.aggregate([
@@ -83,6 +85,7 @@ module.exports.SetInterest = (obj, callback) => {
     }
 }
 
+/* Module permettant l'envoi de la notification au propriétaire de l'immobilier */
 module.exports.createNotification = (newNotif, callback) => {
     try {
         collection.value.insertOne(newNotif, (err, result) => {
@@ -124,6 +127,7 @@ module.exports.createNotification = (newNotif, callback) => {
     }
 }
 
+//Module permettant le comptage des personnes s'étant intérréssé à un immobilier
 module.exports.count = (objet, callback) => {
     try {
 
@@ -260,6 +264,7 @@ module.exports.listImmoAddToExtraForUserAccordingType = (id_user, type, callback
     }
 }
 
+/* Module permettant la définition dans ses favoris */
 module.exports.SetFavorite = (obj, callback) => {
     try {
         collection.value.aggregate([
@@ -331,5 +336,41 @@ module.exports.SetFavorite = (obj, callback) => {
         })
     } catch (exception) {
         callback(false, "Une excetpion a été lévée lors de l'ajout dans l'archive : " + exception)
+    }
+}
+
+/**
+ * Module permettant la determination des si oui ou non l'immo est parmi les favoris du client
+ */
+module.exports.isThisInFavorite = (objet, callback) => {
+    try {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "id_immo": "" + objet._id,
+                    "id_user": objet.id_user
+                }
+            },
+            {
+                "$project": {
+                    "_id": 0,
+                    "flag": 1
+                }
+            }
+        ]).toArray((err, resultAggr) => {
+            if (err) {
+                callback(false, "Une erreur est survenue lors de la détérmination des favoris : " +err)
+            } else {
+                if (resultAggr.length > 0) {
+                    objet.isThisInFavorite = resultAggr[0].flag;
+                    callback(true, "La determination y est", objet)
+                } else {
+                    objet.isThisInFavorite = false;
+                    callback(false, "Cet immo n'est pas dans ses favoris", objet)
+                }
+            }
+        })
+    } catch (exception) {
+        callback(false, "Une exception a été lévée lors de la détérmination des favoris : " + exception)
     }
 }

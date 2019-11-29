@@ -13,6 +13,16 @@ module.exports.Search = function Search() {
             "maxPrice": Number,
             "nbreBadRoom": Number
         },
-        "id_user": String
+        "id_user": String,
+        "created_at": new Date()
+    }
+}
+
+/* Le log pour chaque login */
+module.exports.Login = function Login() {
+    return {
+        "type": "Login",
+        "id_user": String,
+        "history": []
     }
 }

@@ -139,7 +139,15 @@ module.exports.login = function (valeur_username, password, callback) {
                                         "type": type
                                     };
 
-                                callback(true, "Utilisateur connecté", objetRetour)
+                                var logs = require("./log");
+
+                                logs.initialize(db);
+
+                                //La sauvegarde de la connexion d'un client
+                                logs.saveLogin(objetRetour.id_client, (isSave, message, resultSave) => {
+                                    callback(true, "Utilisateur connecté", objetRetour)
+                                })
+
 
                             } else {
                                 callback(false, "Le mot de passe est incorrect");
@@ -317,7 +325,14 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
                 adresse.initialize(db);
                 adresse.getInfoForThisUserAndThisPublish(objet, (isGet, message, resultAdresse) => {
                     if (isGet) {
-                        callback(true, "L'adresse et les autres info y sont", resultAdresse)
+                        
+                        var extra = require("./extra");
+
+                        extra.initialize(db);
+                        extra.isThisInFavorite(resultAdresse, (isDefine, message, resultWithFavorite) => {
+                            callback(true, "L'adresse et les autres info y sont", resultWithFavorite)
+                        })
+                        
                     } else {
                         callback(false, message)
                     }
