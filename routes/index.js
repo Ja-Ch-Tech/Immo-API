@@ -3,6 +3,11 @@ var router = express.Router();
 var multer = require("multer");
 var fs = require("fs");
 var Jimp = require("jimp");
+var aws = require("aws-sdk");
+var multerS3 = require('multer-s3');
+
+
+//aws.config.region = "US East (Ohio)";
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -288,5 +293,76 @@ function compressImage(image_path_inner, image_path_outter, image_file, type_med
         })
     }
 }
+
+//Upload for S3
+router.get('/sign-s3', (req, res) => {
+    const s3 = new aws.S3();
+    const fileName = req.query['file-name'];
+    const fileType = req.query['file-type'];
+    const s3Params = {
+        Bucket: "ndakubizz",
+        Key: fileName,
+        Expires: 60,
+        ContentType: fileType,
+        ACL: 'public-read'
+    };
+
+    s3.getSignedUrl('putObject', s3Params, (err, data) => {
+        if (err) {
+            console.log(err);
+            return res.end();
+        }
+        const returnData = {
+            signedRequest: data,
+            url: `https://ndakubizz.s3.amazonaws.com/${fileName}`
+        };
+        res.write(JSON.stringify(returnData));
+        res.end();
+    });
+});
+
+/*----------------------------------------------------------------------------------*/
+
+aws.config.update({
+    secretAccessKey: 'nBoc9jxpATmxhcUb23lH3yPiLgpOIIQswYBsyCxY',
+    accessKeyId: 'AKIAJT4K77B5KRATXOMQ',
+    region: 'us-east-2'
+});
+
+var s3 = new aws.S3()
+
+var filefilter = (req, file, cb) => {
+    if (file.mineType === "image/jpeg" || file.mineType === "image/png") {
+        cb(null, true)
+    } else {
+        cb(new Error("Invalide mine-type"), false)
+    }
+}
+
+var upload = multer({
+    //fileFilter: filefilter,
+    storage: multerS3({
+        s3: s3,
+        bucket: 'ndakubizz',
+        metadata: function (req, file, cb) {
+            cb(null, { fieldName: 'TESTING_METADATA' });
+        },
+        acl: 'public-read',
+        key: function (req, file, cb) {
+            cb(null, Date.now().toString() + "_" + file.originalname)
+        }
+    })
+})
+
+const singleUpload = upload.single("image");
+
+//Upload Image
+router.post('/image-upload', (req, res) => {
+
+    singleUpload(req, res, (err) => {
+
+        return res.json({ 'imageUrl': req.file.location, "size": req.file.size, "name": req.body.name})
+    })
+})
 
 module.exports = router;

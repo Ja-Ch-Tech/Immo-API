@@ -8,20 +8,18 @@
   <title>Node js upload</title>
 </head>
 <body>
-  <div class="container">
-    <h1>Upload Javascript</h1>
-    <!-- <%= typeof msg != 'undefined' ?  msg : ''  %> -->
-    <form action="/upload/image/produit/myImage" method="post" enctype="multipart/form-data">
-      <label for="file" id="upload">Uploader</label>
-      <input type="file" name="myImage" id="file">
-      <input type="datetime-local" name="" id=""> <br>
-      <button type="submit">Soumettre la requête</button>
+    
+    <input type="file" id="file-input">
+    <p id="status">Please select a file</p>
+    <img id="preview" src="/images/default.png">
+    
+    <form method="POST" action="/save-details">
+        <input type="hidden" id="avatar-url" name="avatar-url" value="/images/default.png">
+        <input type="text" name="username" placeholder="Username"><br>
+        <input type="text" name="full-name" placeholder="Full name"><br><br>
+        <input type="submit" value="Update profile">
     </form>
-    <br>
-    <img src="" alt="" id="imgPrev">
-  </div>
-  
-  <!-- Pour upload d'image -->
-  <!-- <script src="./javascripts/upload.js"></script> -->
+
+  <script src="/javascripts/upload.js"></script>
 </body>
 </html>

@@ -21,7 +21,7 @@ module.exports.create = (newMedia, callback) => {
     try {
         collection.value.insertOne(newMedia, (err, result) => {
             if (err) {
-                callback(false, "Une erreur est survenue lors de l'insertion d'un Media : " +err)
+                callback(false, "Une erreur est survenue lors de l'insertion d'un Media : " + err)
             } else {
                 if (result) {
                     callback(true, "Media créer avec succès", result.ops[0])
@@ -31,7 +31,7 @@ module.exports.create = (newMedia, callback) => {
             }
         })
     } catch (exception) {
-        callback(false, "Une exception a été lévée lors de l'insertion d'un Media : " +err)        
+        callback(false, "Une exception a été lévée lors de l'insertion d'un Media : " + err)
     }
 }
 
@@ -45,7 +45,7 @@ module.exports.findImageForUser = (user, callback) => {
         var filter = {
             "_id": require("mongodb").ObjectId(user.lien_profil)
         };
-        
+
         collection.value.aggregate([
             {
                 "$match": filter
@@ -56,29 +56,15 @@ module.exports.findImageForUser = (user, callback) => {
             } else {
                 if (resultAggr.length > 0) {
 
-                    testyfile.verify((resultAggr[0].path + "/" + resultAggr[0].name), (isVerify, message, result) => {
-                        if (isVerify) {
-                            var splitter = resultAggr[0].path.split("public/")[resultAggr[0].path.split("public/").length - 1] + "/" + resultAggr[0].name;
-                            var image = {
-                                "srcFormat": link.API + "/" + splitter,
-                                "name": resultAggr[0].name
-                            }
-                            user.image = image;
-                            
-                            delete user.lien_profil;
+                    var image = {
+                        "srcFormat": resultAggr[0].path,
+                        "name": resultAggr[0].name
+                    }
+                    user.image = image;
 
-                            setContacts(user, callback);
+                    delete user.lien_profil;
 
-                        } else {
-                            var image = {
-                                "srcFormat": '/images/Avatar-default.jpg',
-                                "name": 'Avatar par défaut'
-                            }
-                            user.image = image;
-                            
-                            setContacts(user, callback);
-                        }
-                    })
+                    setContacts(user, callback);
 
                 } else {
                     user.image = {
@@ -86,7 +72,7 @@ module.exports.findImageForUser = (user, callback) => {
                         "name": 'Avatar par défaut'
                     };
                     delete user.lien_profil;
-                    
+
                     var contact = require("./contact");
 
                     contact.initialize(db);
@@ -97,7 +83,7 @@ module.exports.findImageForUser = (user, callback) => {
             }
         })
     } catch (exception) {
-        
+
     }
 }
 
@@ -111,17 +97,17 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
             }
         ]).toArray((err, resultAggr) => {
             if (err) {
-                callback(false, "Une erreur lors de la recherche de l'image : " +err)
+                callback(false, "Une erreur lors de la recherche de l'image : " + err)
             } else {
                 if (resultAggr.length > 0) {
 
                     testyfile.verify((resultAggr[0].path + "/" + resultAggr[0].name), (isVerify, message, result) => {
 
-                        
+
 
                         if (isVerify) {
                             var splitter = resultAggr[0].path.split("public/")[resultAggr[0].path.split("public/").length - 1] + "/" + resultAggr[0].name;
-                            
+
                             resultAggr[0].srcFormat = link.API + "/" + splitter;
                             resultAggr[0].intitule = objet.name;
 
@@ -151,7 +137,7 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
             }
         })
     } catch (exception) {
-        callback(false, "Une exception est lévée lors de la recherche de l'image : " + exception)        
+        callback(false, "Une exception est lévée lors de la recherche de l'image : " + exception)
     }
 }
 
