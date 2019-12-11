@@ -492,7 +492,7 @@ module.exports.getInfoForAnyUser = (id, callback) => {
 
                     adresse.initialize(db);
                     adresse.findWithObjet(resultAggr[0], (isFound, message, resultAdresse) => {
-                        callback(isFound, message, resultAdresse)
+                        callback(true, message, resultAdresse)
                     })
                 } else {
                     callback(false, "Aucun n'utilisateur n'occupe cet id")
