@@ -74,7 +74,16 @@ module.exports.SetInterest = (obj, callback) => {
                             })
                         } else {
 
-                            callback(true, "Veuiilez contacter l'admin", { isInLocation: false })
+                            var entity = require("./entities/extra").Notification();
+
+                            entity.id_owner = obj.id_owner;
+                            entity.id_user = obj.id_user;
+                            entity.id_immo = obj.id_immo;
+                            entity.typeNotif = "User Interest This Sale";
+
+                            module.exports.createNotification(entity, (isCreated, message, result) => {
+                                callback(true, "Veuiilez contacter l'admin", { isInLocation: false });
+                            })
                         }
                     })
                 }
@@ -88,40 +97,80 @@ module.exports.SetInterest = (obj, callback) => {
 /* Module permettant l'envoi de la notification au propriétaire de l'immobilier */
 module.exports.createNotification = (newNotif, callback) => {
     try {
-        collection.value.insertOne(newNotif, (err, result) => {
+        collection.value.aggregate([
+            {
+                "$match": {
+                    "id_user": newNotif.id_user,
+                    "id_owner": newNotif.id_owner,
+                    "id_immo": newNotif.id_immo,
+                    "$or": [
+                        { "typeNotif": new RegExp("owner publish", "i") },
+                        { "typeNotif": new RegExp("User Interest This Sale", "i") }
+                    ],
+                    "type": new RegExp("notification", "i")
+                }
+            }
+        ]).toArray((err, resultAggr) => {
             if (err) {
-                callback(false, "Erreur d'insertion de la notification : " + err)
+                callback(false, "Une erreur lors de la creation du notification : " + err)
             } else {
-                if (result) {
-                    var immo = require("./immobilier"),
-                        objet = {
-                            "id_immo": result.ops[0].id_immo
-                        };
-
-                    immo.initialize(db);
-                    immo.testIfInLocation(objet, (isOkay, message, resultTest) => {
-                        if (isOkay) {
-                            var user = require("./users"),
-                                model = {
-                                    "id_user": result.ops[0].id_owner,
-                                    "isInLocation": true
-                                };
-
-                            user.initialize(db);
-                            user.getInfoOwner(model, (isGet, message, resultOwner) => {
-                                callback(isGet, message, resultOwner)
-                            })
+                if (resultAggr.length === 0) {
+                    collection.value.insertOne(newNotif, (err, result) => {
+                        if (err) {
+                            callback(false, "Erreur d'insertion de la notification : " + err)
                         } else {
+                            if (result) {
+                                var immo = require("./immobilier"),
+                                    objet = {
+                                        "id_immo": result.ops[0].id_immo
+                                    };
 
-                            callback(true, "Veuiilez contacter l'admin", { isInLocation: false })
+                                immo.initialize(db);
+                                immo.testIfInLocation(objet, (isOkay, message, resultTest) => {
+                                    if (isOkay) {
+                                        var user = require("./users"),
+                                            model = {
+                                                "id_user": result.ops[0].id_owner,
+                                                "isInLocation": true
+                                            };
+
+                                        user.initialize(db);
+                                        user.getInfoOwner(model, (isGet, message, resultOwner) => {
+                                            callback(isGet, message, resultOwner)
+                                        })
+                                    } else {
+                                        newNotif.typeNotif = "User Interest This Sale";
+
+                                        collection.value.insertOne(newNotif, (err, notif) => {
+                                            if (err) {
+                                                callback(false, "Une erreur lors de l'insertion pour l'admin :" + err, { isInLocation: false })
+                                            } else {
+                                                callback(true, "Veuiilez contacter l'admin", { isInLocation: false })
+                                            }
+                                        })
+                                    }
+                                })
+
+                            } else {
+                                callback(false, "Aucune insertion")
+                            }
                         }
                     })
-
                 } else {
-                    callback(false, "Aucune insertion")
+                    var user = require("./users"),
+                        model = {
+                            "id_user": resultAggr[0].id_owner,
+                            "isInLocation": false
+                        };
+
+                    user.initialize(db);
+                    user.getInfoOwner(model, (isGet, message, resultOwner) => {
+                        callback(isGet, message, resultOwner)
+                    })
                 }
             }
         })
+        
     } catch (exception) {
         callback(false, "Exception lors d'insertion de la notification : " + exception)
     }

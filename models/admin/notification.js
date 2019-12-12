@@ -25,8 +25,10 @@ module.exports.getNotification = (id_admin, limit, callback) => {
                 collection.value.aggregate([
                     {
                         "$match": {
-                            "id_owner": null,
-                            "typeNotif": new RegExp("owner publish", "i"),
+                            "$or": [
+                                {"typeNotif": new RegExp("owner publish", "i")},
+                                { "typeNotif": new RegExp("User Interest This Sale", "i") }
+                            ],
                             "type": new RegExp("notification", "i")
                         }
                     },
@@ -35,7 +37,8 @@ module.exports.getNotification = (id_admin, limit, callback) => {
                         "$project": {
                             "id_user": 1,
                             "id_immo": 1,
-                            "created_at": 1
+                            "created_at": 1,
+                            "typeNotif": 1
                         }
                     },
                     {
