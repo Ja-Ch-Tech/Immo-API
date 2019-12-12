@@ -101,38 +101,23 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
             } else {
                 if (resultAggr.length > 0) {
 
-                    testyfile.verify((resultAggr[0].path + "/" + resultAggr[0].name), (isVerify, message, result) => {
+                    resultAggr[0].srcFormat = resultAggr[0].path;
+                    resultAggr[0].intitule = resultAggr[0].name;
 
+                    delete resultAggr[0]._id;
+                    delete resultAggr[0].name;
+                    delete resultAggr[0].path;
+                    delete resultAggr[0].created_at;
 
-
-                        if (isVerify) {
-                            var splitter = resultAggr[0].path.split("public/")[resultAggr[0].path.split("public/").length - 1] + "/" + resultAggr[0].name;
-
-                            resultAggr[0].srcFormat = link.API + "/" + splitter;
-                            resultAggr[0].intitule = objet.name;
-
-                            delete resultAggr[0]._id;
-                            delete resultAggr[0].name;
-                            delete resultAggr[0].path;
-                            delete resultAggr[0].created_at;
-
-                            callback(true, "L'image y est", resultAggr[0])
-
-                        } else {
-                            resultAggr[0].srcFormat = '/images/house-default.jpg';
-                            resultAggr[0].intitule = 'Image par défaut';
-
-                            delete resultAggr[0]._id;
-                            delete resultAggr[0].name;
-                            delete resultAggr[0].path;
-                            delete resultAggr[0].created_at;
-
-                            callback(true, message, resultAggr[0])
-                        }
-                    })
+                    callback(true, "L'image y est", resultAggr[0]);
 
                 } else {
-                    callback(false, "Aucune image à ce propos")
+                    var objet = {
+                        srcFormat: '/images/house-default.jpg',
+                        intitule: 'Image par défaut'
+                    }
+
+                    callback(false, "Aucune image à ce propos", objet)
                 }
             }
         })

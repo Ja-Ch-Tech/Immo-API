@@ -160,9 +160,7 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
                         for (let index = 0; index < resultWithCount.images.length; index++) {
                             media.getInfoForThisUserAndThisPublish(resultWithCount.images[index], (isGet, message, resultWithMedia) => {
                                 sortieImage++;
-                                if (isGet) {
-                                    listImage.push(resultWithMedia);
-                                }
+                                listImage.push(resultWithMedia);
 
                                 if (sortieImage == resultWithCount.images.length) {
                                     resultWithCount.detailsImages = listImage;
