@@ -27,6 +27,7 @@ module.exports.SetInterest = (obj, callback) => {
                 callback(false, "Une erreur est survenue lors de l'ajout dans l'archive : " + err)
             } else {
                 if (resultAggr.length === 0) {
+
                     collection.value.insertOne(obj, (err, result) => {
                         if (err) {
                             callback(false, "Une erreur est survenue lors de l'insert dans l'achive : " + err)
@@ -42,7 +43,38 @@ module.exports.SetInterest = (obj, callback) => {
 
                                 module.exports.createNotification(entity, (isCreated, message, result) => {
                                     if (isCreated) {
-                                        callback(true, "L'ajout dans l'archive y est", result)
+                                        var immo = require("./immobilier"),
+                                            objet = {
+                                                "id_immo": result.id_immo
+                                            };
+
+                                        immo.initialize(db);
+                                        immo.testIfInLocation(objet, (isOkay, message, resultTest) => {
+                                            if (isOkay) {
+                                                var user = require("./users"),
+                                                    model = {
+                                                        "id_user": result.id_owner,
+                                                        "isInLocation": true
+                                                    };
+
+                                                user.initialize(db);
+                                                user.getInfoOwner(model, (isGet, message, resultOwner) => {
+                                                    callback(isGet, message, resultOwner)
+                                                })
+                                            } else {
+
+                                                var entityForNotLocate = require("./entities/extra").Notification();
+
+                                                entityForNotLocate.id_owner = obj.id_owner;
+                                                entityForNotLocate.id_user = obj.id_user;
+                                                entityForNotLocate.id_immo = obj.id_immo;
+                                                entityForNotLocate.typeNotif = "User Interest This Sale";
+
+                                                module.exports.createNotification(entityForNotLocate, (isCreated, message, resultWhereNotLocate) => {
+                                                    callback(true, "Veuiilez contacter l'admin", { isInLocation: false });
+                                                })
+                                            }
+                                        })
                                     } else {
                                         callback(true, "Vous êtes intérréssé, malheureusement la notification n'est pas arrivé")
                                     }
@@ -139,6 +171,7 @@ module.exports.createNotification = (newNotif, callback) => {
                                             callback(isGet, message, resultOwner)
                                         })
                                     } else {
+                                        delete newNotif._id;
                                         newNotif.typeNotif = "User Interest This Sale";
 
                                         collection.value.insertOne(newNotif, (err, notif) => {
