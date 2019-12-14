@@ -173,6 +173,7 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
                         }
 
                     } else {
+                        resultWithCount.detailsImages = [];
                         callback(true, "L'image n'existe pas, donc l'etape a été ignorer", resultWithCount)
                     }
                 })
