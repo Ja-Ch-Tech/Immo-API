@@ -173,7 +173,7 @@ module.exports.getInfoForThisUserAndThisPublish = (objet, callback) => {
                         }
 
                     } else {
-                        resultWithCount.detailsImages = [];
+                        resultWithCount.detailsImages = [{srcFormat: "/images/house-default.jpg", intitule: "Avatar default"}];
                         callback(true, "L'image n'existe pas, donc l'etape a été ignorer", resultWithCount)
                     }
                 })
