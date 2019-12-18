@@ -242,14 +242,10 @@ module.exports.count = (objet, callback) => {
 }
 
 //Liste d'utilisateur s'étant intéressé par cette immobilier si et seulement si cette immobilier est en location
-module.exports.listUserInterestToImmo = (objet, callback) => {
+module.exports.listUserInterestToImmo = (objet, id_admin, callback) => {
     try {
-        var immo = require("./immobilier");
-
-        immo.initialize(db);
-        immo.testIfInLocation(objet, (isOkay, message, resultTest) => {
-            if (isOkay) {
-                collection.value.aggregate([
+        if (id_admin && id_admin != "null") {
+            collection.value.aggregate([
                     {
                         "$match": {
                             "id_immo": objet.id_immo,
@@ -284,10 +280,53 @@ module.exports.listUserInterestToImmo = (objet, callback) => {
                         }
                     }
                 })
-            } else {
-                callback(false, "Veuillez contacter l'administrattion pour voir ces gens")
-            }
-        })
+        } else {
+            var immo = require("./immobilier");
+
+            immo.initialize(db);
+            immo.testIfInLocation(objet, (isOkay, message, resultTest) => {
+                if (isOkay) {
+                    collection.value.aggregate([
+                        {
+                            "$match": {
+                                "id_immo": objet.id_immo,
+                                "type": new RegExp("Interest", "i")
+                            }
+                        }
+                    ]).toArray((err, resultAggr) => {
+                        if (err) {
+                            callback(false, "Erreur lors de la récupération des users : " + err)
+                        } else {
+                            if (resultAggr.length > 0) {
+                                var users = require("./users"),
+                                    sortieUsers = 0,
+                                    listRetour = [];
+
+                                users.initialize(db);
+
+                                for (let index = 0; index < resultAggr.length; index++) {
+                                    users.getInfoForAnyUser(resultAggr[index].id_user, (isGet, message, resultInfo) => {
+                                        sortieUsers++;
+                                        if (isGet) {
+                                            listRetour.push(resultInfo);
+                                        }
+
+                                        if (sortieUsers == resultAggr.length) {
+                                            callback(true, "Les infos des utilsateur ayant un intérêt a votre immobilier", listRetour)
+                                        }
+                                    })
+                                }
+                            } else {
+                                callback(false, "Aucun user n'est intérressé")
+                            }
+                        }
+                    })
+                } else {
+                    callback(false, "Veuillez contacter l'administrattion pour voir ces gens")
+                }
+            }) 
+        }
+        
     } catch (exception) {
         callback(false, "Erreur lors de la récupération des users : " + err)
     }

@@ -25,14 +25,15 @@ router.post('/interest', (req, res) => {
     })
 })
 
-router.get('/listUserInterest/:id_immo', (req, res) => {
+router.get('/listUserInterest/:id_immo/:id_admin', (req, res) => {
     var objetRetour = require("./objet_retour").ObjetRetour(),
         objet = {
             "id_immo": req.params.id_immo
-        };
+        },
+        id_admin = req.params.id_admin && req.params.id_admin != "null" ? req.params.id_admin : null;
 
     model.initialize(db);
-    model.listUserInterestToImmo(objet, (isGet, message, result) => {
+    model.listUserInterestToImmo(objet, id_admin, (isGet, message, result) => {
         objetRetour.getEtat = isGet;
         objetRetour.getMessage = message;
         objetRetour.getObjet = result;
