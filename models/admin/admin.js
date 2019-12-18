@@ -1,5 +1,5 @@
 var db = require("../db")
-bcrypt = require("bcrypt");
+bcrypt = require("bcryptjs");
 
 var collection = {
     value: null
