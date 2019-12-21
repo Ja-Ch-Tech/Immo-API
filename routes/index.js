@@ -324,8 +324,8 @@ router.get('/sign-s3', (req, res) => {
 /*----------------------------------------------------------------------------------*/
 
 aws.config.update({
-    secretAccessKey: 'nBoc9jxpATmxhcUb23lH3yPiLgpOIIQswYBsyCxY',
-    accessKeyId: 'AKIAJT4K77B5KRATXOMQ',
+    secretAccessKey: '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',
+    accessKeyId: 'AKIAIR6KIJ2246D6MFSA',
     region: 'us-east-2'
 });
 
@@ -360,8 +360,12 @@ const singleUpload = upload.single("image");
 router.post('/image-upload', (req, res) => {
 
     singleUpload(req, res, (err) => {
-
-        return res.json({ 'imageUrl': req.file.location, "size": req.file.size, "name": req.body.name})
+        if (!err) {
+            return res.json({ flag: true, 'imageUrl': req.file.location, "size": req.file.size, "name": req.body.name})
+        } else {
+            return res.json({ flag: false, 'imageUrl': null, "size": null, "name": req.body.name })
+        }
+        
     })
 })
 
