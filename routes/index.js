@@ -324,8 +324,8 @@ router.get('/sign-s3', (req, res) => {
 /*----------------------------------------------------------------------------------*/
 
 aws.config.update({
-    secretAccessKey: 'DytlHOi8Hdn8nVOOHHmqya+VFVhsFDX1h9HYx5Lr',
-    accessKeyId: 'AKIAIR6KIJ2246D6MFSA',
+    secretAccessKey: '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',
+    accessKeyId: 'AKIAJHJLCPMPLAMSN3AA',
     region: 'us-east-2'
 });
 
@@ -343,9 +343,9 @@ var upload = multer({
     //fileFilter: filefilter,
     storage: multerS3({
         s3: s3,
-        bucket: 'ndakubizz',
+        bucket: 'ndakubizz007',
         metadata: function (req, file, cb) {
-            cb(null, { fieldName: 'TESTING_METADATA' });
+            cb(null, { fieldName: 'Frdrcpeter_metadata' });
         },
         acl: 'public-read',
         key: function (req, file, cb) {
