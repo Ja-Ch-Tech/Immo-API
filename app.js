@@ -11,9 +11,9 @@ var logger = require('morgan');
 
 var db = require("./models/db");
 
-//mongodb+srv://anonymefr:taskok@frdrcpeter-ebpjm.mongodb.net/test?retryWrites=true&w=majority
+//mongodb+srv://frdrcpeter:mongodbpasswordmerdique@frdrcpetercluster-hiqa9.mongodb.net/test?retryWrites=true&w=majority
 //mongodb://@localhost:27017/Immob?authSource=admin
-var string_con = 'mongodb+srv://anonymefr:taskok@frdrcpeter-ebpjm.mongodb.net/test?retryWrites=true&w=majority';
+var string_con = 'mongodb+srv://frdrcpeter:mongodbpasswordmerdique@frdrcpetercluster-hiqa9.mongodb.net/test?retryWrites=true&w=majority';
 
 db.connect(string_con, (isConnected, resultConnect) => {
 
