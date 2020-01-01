@@ -358,7 +358,7 @@ const singleUpload = upload.single("image");
 
 //Upload Image
 router.post('/image-upload', (req, res) => {
-    console.log(process.env.S3_BUCKET);
+    console.log(process.env.S3_BUCKET+ " " +process.env.AWS_ACCESS_KEY_ID+ ""+ process.env.AWS_SECRET_ACCESS_KEY);
     singleUpload(req, res, (err) => {
         if (!err) {
             return res.json({ flag: true, 'imageUrl': req.file.location, "size": req.file.size, "name": req.body.name})
